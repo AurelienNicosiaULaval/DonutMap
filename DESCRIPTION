@@ -28,6 +28,7 @@ Imports:
     sf,
     tibble
 Suggests:
+    ragg,
     knitr,
     rmarkdown,
     rnaturalearth,
@@ -35,5 +36,6 @@ Suggests:
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 VignetteBuilder: knitr
-URL: https://github.com/AurelienNicosiaULaval/DonutMap
+URL: https://aureliennicosiaulaval.github.io/DonutMap/, https://github.com/AurelienNicosiaULaval/DonutMap
 BugReports: https://github.com/AurelienNicosiaULaval/DonutMap/issues
+Config/Needs/website: pkgdown

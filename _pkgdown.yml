@@ -1,0 +1,46 @@
+url: https://aureliennicosiaulaval.github.io/DonutMap/
+
+template:
+  bootstrap: 5
+  bootswatch: flatly
+  bslib:
+    primary: "#17324d"
+
+navbar:
+  structure:
+    left: [intro, reference, articles, news]
+    right: [github]
+  components:
+    intro:
+      text: Get started
+      href: articles/donut-maps.html
+    articles:
+      text: Examples
+      menu:
+      - text: Donut maps with DonutMap
+        href: articles/donut-maps.html
+
+home:
+  title: DonutMap
+  description: Static and interactive donut maps with sf, ggplot2, and leaflet.
+  sidebar:
+    structure: [links, license, community, citation, authors, dev]
+
+reference:
+- title: Map builders
+  desc: User-facing functions to create static or interactive maps.
+  contents:
+  - donut_map
+  - donut_leaflet
+- title: Geometry helpers
+  desc: Functions that return sf layers for advanced workflows.
+  contents:
+  - donut_polygons
+  - flow_lines
+
+figures:
+  dev: ragg::agg_png
+  dpi: 96
+
+development:
+  mode: auto

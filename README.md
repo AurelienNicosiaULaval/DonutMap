@@ -1,7 +1,13 @@
 # DonutMap
 
+<img src="man/figures/logo.svg" align="right" width="170" alt="DonutMap hex logo"/>
+
 DonutMap is an R package for drawing donut charts on static and interactive
-maps with `sf`, `ggplot2`, and `leaflet`. It is inspired by
+maps with `sf`, `ggplot2`, and `leaflet`.
+
+Website: <https://aureliennicosiaulaval.github.io/DonutMap/>
+
+The package is inspired by
 [`mtennekes/donutmaps`](https://github.com/mtennekes/donutmaps), but starts from
 a simpler tidy-data interface and avoids the older `odf`/`tmap` workflow.
 
@@ -15,7 +21,19 @@ devtools::install_github("AurelienNicosiaULaval/DonutMap")
 devtools::install()
 ```
 
-## Example
+## Main functions
+
+`donut_map()` creates a static `ggplot2` map.
+
+`donut_leaflet()` creates an interactive `leaflet` map with clickable donut
+segments, popups, hover labels, legends, and optional flow lines.
+
+`donut_polygons()` computes an `sf` polygon layer with one donut segment per
+non-zero location-category pair.
+
+`flow_lines()` computes straight origin-destination `sf` line geometries.
+
+## Example data
 
 ```r
 library(DonutMap)
@@ -35,6 +53,16 @@ flows <- data.frame(
   trips = c(30, 10)
 )
 
+mode_colours <- c(
+  Walking = "#1b9e77",
+  Transit = "#7570b3",
+  Car = "#d95f02"
+)
+```
+
+## Static map
+
+```r
 donut_map(
   demo,
   place,
@@ -46,11 +74,11 @@ donut_map(
   from = from,
   to = to,
   flow_value = trips,
-  colours = c(Walking = "#1b9e77", Transit = "#7570b3", Car = "#d95f02")
+  colours = mode_colours
 )
 ```
 
-Interactive maps use the same tidy interface:
+## Interactive map
 
 ```r
 donut_leaflet(
@@ -64,21 +92,20 @@ donut_leaflet(
   from = from,
   to = to,
   flow_value = trips,
-  colours = c(Walking = "#1b9e77", Transit = "#7570b3", Car = "#d95f02")
+  colours = mode_colours
 )
 ```
 
-## Main functions
+## Examples and documentation
 
-`donut_polygons()` computes an `sf` polygon layer with one donut segment per
-non-zero location-category pair.
+The pkgdown site includes a complete vignette with:
 
-`flow_lines()` computes straight origin-destination `sf` line geometries.
+- simulated Québec/eastern Canada example data;
+- a static `ggplot2` donut map;
+- an interactive `leaflet` donut map;
+- direct use of the `sf` geometry layer.
 
-`donut_map()` combines the two into a ready-to-print `ggplot2` map.
+See `vignette("donut-maps", package = "DonutMap")` locally, or the online
+article:
 
-`donut_leaflet()` creates an interactive `leaflet` map with clickable donut
-segments, popups, labels, legends, and optional flow lines.
-
-See `vignette("donut-maps", package = "DonutMap")` for a complete worked
-example.
+<https://aureliennicosiaulaval.github.io/DonutMap/articles/donut-maps.html>
