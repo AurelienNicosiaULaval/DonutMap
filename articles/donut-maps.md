@@ -59,9 +59,10 @@ demo$value <- c(
 demo$category <- factor(demo$category, levels = categories)
 
 flows <- data.frame(
-  from = c("Site A", "Site A", "Site B", "Site C", "Site D"),
-  to = c("Site B", "Site C", "Site D", "Site E", "Site E"),
-  trips = c(180, 90, 120, 70, 60)
+  from = c("Site A", "Site A", "Site B", "Site B", "Site C", "Site C", "Site D", "Site E"),
+  to = c("Site B", "Site C", "Site D", "Site A", "Site E", "Site B", "Site E", "Site C"),
+  trips = c(180, 90, 120, 75, 70, 55, 60, 45),
+  flow_category = c("Transit", "Car", "Walking", "Transit", "Car", "Walking", "Walking", "Transit")
 )
 
 category_colours <- c(
@@ -98,9 +99,11 @@ eastern_canada <- sf::st_crop(
 [`donut_map()`](https://aureliennicosiaulaval.github.io/DonutMap/reference/donut_map.md)
 returns a normal `ggplot` object, so additional `ggplot2` layers,
 scales, labels, and themes can be added afterwards. The `flows` argument
-adds links between donut locations. Use `flow_curvature = 0` for
-straight links, and larger positive or negative values for curved
-trajectories.
+adds links between donut locations. `flow_group` colours those links by
+a column in the flow table, which is useful for showing the
+municipality, mode, or class of each connection. Use
+`flow_curvature = 0` for straight links, and larger positive or negative
+values for curved trajectories.
 
 ``` r
 
@@ -119,6 +122,8 @@ donut_map(
   from = from,
   to = to,
   flow_value = trips,
+  flow_group = flow_category,
+  flow_colours = category_colours,
   flow_linewidth_range = c(0.3, 2.2),
   flow_curvature = 0.22,
   flow_arrow = TRUE
@@ -138,11 +143,12 @@ donut_map(
 [`donut_leaflet()`](https://aureliennicosiaulaval.github.io/DonutMap/reference/donut_leaflet.md)
 returns a `leaflet` htmlwidget. Donut segments and trajectory lines,
 including arrowheads, can be clicked to open popups, and hover labels
-are enabled by default. By default, interactive donuts are constructed
-in EPSG:3857, the display projection used by Leaflet, which keeps the
-sector boundaries visually regular on screen. Leaflet simplification is
-also disabled for donut polygons so the sector borders are not
-simplified after the widget is rendered.
+are enabled by default. When `flow_group` is supplied, both the
+trajectory lines and their arrowheads are coloured by group. By default,
+interactive donuts are constructed in EPSG:3857, the display projection
+used by Leaflet, which keeps the sector boundaries visually regular on
+screen. Leaflet simplification is also disabled for donut polygons so
+the sector borders are not simplified after the widget is rendered.
 
 ``` r
 
@@ -161,11 +167,12 @@ donut_leaflet(
   from = from,
   to = to,
   flow_value = trips,
+  flow_group = flow_category,
+  flow_colours = category_colours,
   flow_weight_range = c(1, 7),
   flow_curvature = 0.22,
   flow_arrow = TRUE,
   flow_arrow_size = 45000,
-  flow_colour = "#1f2937",
   flow_opacity = 0.75
 )
 ```
@@ -186,6 +193,7 @@ trajectories <- flow_lines(
   to,
   trips,
   site,
+  group = flow_category,
   lon = lon,
   lat = lat,
   crs = 3347,
@@ -194,19 +202,22 @@ trajectories <- flow_lines(
 )
 
 trajectories
-#> Simple feature collection with 5 features and 3 fields
+#> Simple feature collection with 8 features and 4 fields
 #> Geometry type: LINESTRING
 #> Dimension:     XY
-#> Bounding box:  xmin: 7631610 ymin: 1244380 xmax: 7933770 ymax: 1910206
+#> Bounding box:  xmin: 7631610 ymin: 1244380 xmax: 7936146 ymax: 1910206
 #> Projected CRS: NAD83 / Statistics Canada Lambert
-#> # A tibble: 5 × 4
-#>   from   to     value                                                   geometry
-#>   <chr>  <chr>  <dbl>                                           <LINESTRING [m]>
-#> 1 Site A Site B   180 (7631610 1244380, 7632825 1250853, 7634155 1257251, 76355…
-#> 2 Site A Site C    90 (7631610 1244380, 7633203 1245308, 7634801 1246199, 76364…
-#> 3 Site B Site D   120 (7763098 1440475, 7763754 1448083, 7764551 1455617, 77654…
-#> 4 Site C Site E    70 (7697210 1252459, 7696045 1271925, 7695261 1291254, 76948…
-#> 5 Site D Site E    60 (7892189 1681853, 7890745 1688166, 7889433 1694454, 78882…
+#> # A tibble: 8 × 5
+#>   from   to     value group                                             geometry
+#>   <chr>  <chr>  <dbl> <chr>                                     <LINESTRING [m]>
+#> 1 Site A Site B   180 Transit (7631610 1244380, 7632825 1250853, 7634155 125725…
+#> 2 Site A Site C    90 Car     (7631610 1244380, 7633203 1245308, 7634801 124619…
+#> 3 Site B Site D   120 Walking (7763098 1440475, 7763754 1448083, 7764551 145561…
+#> 4 Site B Site A    75 Transit (7763098 1440475, 7761882 1434001, 7760553 142760…
+#> 5 Site C Site E    70 Car     (7697210 1252459, 7696045 1271925, 7695261 129125…
+#> 6 Site C Site B    55 Walking (7697210 1252459, 7696833 1258005, 7696564 126351…
+#> 7 Site D Site E    60 Walking (7892189 1681853, 7890745 1688166, 7889433 169445…
+#> 8 Site E Site C    45 Transit (7933770 1910206, 7934935 1890740, 7935719 187141…
 ```
 
 ## Using the geometry layer directly

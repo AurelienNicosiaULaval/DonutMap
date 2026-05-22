@@ -13,6 +13,7 @@ flow_lines(
   to,
   value = NULL,
   id,
+  group = NULL,
   lon = NULL,
   lat = NULL,
   input_crs = 4326,
@@ -46,6 +47,11 @@ flow_lines(
 - id:
 
   Unquoted location id column in `locations`.
+
+- group:
+
+  Optional unquoted column in `flows` used to group or colour flow
+  lines.
 
 - lon, lat:
 

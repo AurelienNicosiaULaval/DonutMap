@@ -25,6 +25,8 @@ donut_map(
   from = NULL,
   to = NULL,
   flow_value = NULL,
+  flow_group = NULL,
+  flow_colours = NULL,
   flow_min = NULL,
   flow_linewidth_range = c(0.2, 2.5),
   flow_curvature = 0.18,
@@ -110,6 +112,17 @@ donut_map(
   Optional unquoted numeric column in `flows` used to scale line widths.
   If omitted, each flow receives value 1.
 
+- flow_group:
+
+  Optional unquoted column in `flows` used to colour flow lines and
+  arrowheads by group.
+
+- flow_colours:
+
+  Optional colours for `flow_group`. Use a named vector for stable
+  group-colour matching. If omitted and flow groups match donut
+  categories, `colours` is reused.
+
 - flow_min:
 
   Optional minimum flow value to draw.
@@ -138,7 +151,8 @@ donut_map(
 
 - flow_colour, flow_alpha:
 
-  Flow line colour and alpha.
+  Flow line colour and alpha. `flow_colour` is used when `flow_group` is
+  not supplied.
 
 - map_fill, map_colour:
 

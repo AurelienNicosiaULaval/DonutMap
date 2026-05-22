@@ -64,6 +64,8 @@ curved trajectories between donut locations.</p>
 <span>  from <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  to <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  flow_value <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  flow_group <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  flow_colours <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  flow_min <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  flow_linewidth_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.2</span>, <span class="fl">2.5</span><span class="op">)</span>,</span>
 <span>  flow_curvature <span class="op">=</span> <span class="fl">0.18</span>,</span>
@@ -151,6 +153,17 @@ ids. Required when <code>flows</code> is supplied.</p></dd>
 line widths. If omitted, each flow receives value 1.</p></dd>
 
 
+<dt id="arg-flow-group">flow_group<a class="anchor" aria-label="anchor" href="#arg-flow-group"></a></dt>
+<dd><p>Optional unquoted column in <code>flows</code> used to colour flow
+lines and arrowheads by group.</p></dd>
+
+
+<dt id="arg-flow-colours">flow_colours<a class="anchor" aria-label="anchor" href="#arg-flow-colours"></a></dt>
+<dd><p>Optional colours for <code>flow_group</code>. Use a named vector for
+stable group-colour matching. If omitted and flow groups match donut
+categories, <code>colours</code> is reused.</p></dd>
+
+
 <dt id="arg-flow-min">flow_min<a class="anchor" aria-label="anchor" href="#arg-flow-min"></a></dt>
 <dd><p>Optional minimum flow value to draw.</p></dd>
 
@@ -179,7 +192,8 @@ for the opposite direction.</p></dd>
 
 
 <dt id="arg-flow-colour-flow-alpha">flow_colour, flow_alpha<a class="anchor" aria-label="anchor" href="#arg-flow-colour-flow-alpha"></a></dt>
-<dd><p>Flow line colour and alpha.</p></dd>
+<dd><p>Flow line colour and alpha. <code>flow_colour</code> is
+used when <code>flow_group</code> is not supplied.</p></dd>
 
 
 <dt id="arg-map-fill-map-colour">map_fill, map_colour<a class="anchor" aria-label="anchor" href="#arg-map-fill-map-colour"></a></dt>

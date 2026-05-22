@@ -50,6 +50,7 @@ locations. Lines can be straight or curved trajectories.</p>
 <span>  <span class="va">to</span>,</span>
 <span>  value <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">id</span>,</span>
+<span>  group <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  lon <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  lat <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  input_crs <span class="op">=</span> <span class="fl">4326</span>,</span>
@@ -85,6 +86,11 @@ If omitted, each flow receives value 1.</p></dd>
 
 <dt id="arg-id">id<a class="anchor" aria-label="anchor" href="#arg-id"></a></dt>
 <dd><p>Unquoted location id column in <code>locations</code>.</p></dd>
+
+
+<dt id="arg-group">group<a class="anchor" aria-label="anchor" href="#arg-group"></a></dt>
+<dd><p>Optional unquoted column in <code>flows</code> used to group or colour
+flow lines.</p></dd>
 
 
 <dt id="arg-lon-lat">lon, lat<a class="anchor" aria-label="anchor" href="#arg-lon-lat"></a></dt>

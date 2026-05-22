@@ -26,13 +26,13 @@ devtools::install()
 ## Main functions
 
 [`donut_map()`](https://aureliennicosiaulaval.github.io/DonutMap/reference/donut_map.md)
-creates a static `ggplot2` map with optional curved trajectories and
-arrows.
+creates a static `ggplot2` map with optional coloured curved
+trajectories and arrows.
 
 [`donut_leaflet()`](https://aureliennicosiaulaval.github.io/DonutMap/reference/donut_leaflet.md)
 creates an interactive `leaflet` map with clickable donut segments,
-popups, hover labels, legends, and optional curved trajectories with
-directional arrowheads. It builds the interactive donut symbols in
+popups, hover labels, legends, and optional coloured curved trajectories
+with directional arrowheads. It builds the interactive donut symbols in
 EPSG:3857 by default and disables Leaflet simplification for donut
 polygons so sector separators stay visually regular.
 
@@ -61,7 +61,8 @@ demo <- data.frame(
 flows <- data.frame(
   from = c("A", "B"),
   to = c("B", "C"),
-  trips = c(30, 10)
+  trips = c(30, 10),
+  flow_category = c("Transit", "Car")
 )
 
 mode_colours <- c(
@@ -86,6 +87,8 @@ donut_map(
   from = from,
   to = to,
   flow_value = trips,
+  flow_group = flow_category,
+  flow_colours = mode_colours,
   flow_curvature = 0.22,
   flow_arrow = TRUE,
   colours = mode_colours
@@ -107,6 +110,8 @@ donut_leaflet(
   from = from,
   to = to,
   flow_value = trips,
+  flow_group = flow_category,
+  flow_colours = mode_colours,
   flow_curvature = 0.22,
   flow_arrow = TRUE,
   colours = mode_colours
@@ -119,15 +124,17 @@ bend direction, and negative values for the opposite direction.
 interactive trajectories. In
 [`donut_leaflet()`](https://aureliennicosiaulaval.github.io/DonutMap/reference/donut_leaflet.md),
 use `flow_arrow_size` to tune the arrowhead length in projected map
-units when the automatic size is not ideal.
+units when the automatic size is not ideal. Use `flow_group` and
+`flow_colours` when the connections themselves should carry a
+categorical colour, for example destination municipality or flow type.
 
 ## Examples and documentation
 
 The pkgdown site includes a complete vignette with:
 
 - simulated Québec/eastern Canada example data;
-- a static `ggplot2` donut map with directional trajectories;
-- an interactive `leaflet` donut map with clickable directional
+- a static `ggplot2` donut map with coloured directional trajectories;
+- an interactive `leaflet` donut map with clickable coloured
   trajectories;
 - direct use of the `sf` geometry layer.
 

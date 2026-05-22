@@ -77,8 +77,8 @@
 <div class="section level2">
 <h2 id="main-functions">Main functions<a class="anchor" aria-label="anchor" href="#main-functions"></a>
 </h2>
-<p><code><a href="reference/donut_map.html">donut_map()</a></code> creates a static <code>ggplot2</code> map with optional curved trajectories and arrows.</p>
-<p><code><a href="reference/donut_leaflet.html">donut_leaflet()</a></code> creates an interactive <code>leaflet</code> map with clickable donut segments, popups, hover labels, legends, and optional curved trajectories with directional arrowheads. It builds the interactive donut symbols in EPSG:3857 by default and disables Leaflet simplification for donut polygons so sector separators stay visually regular.</p>
+<p><code><a href="reference/donut_map.html">donut_map()</a></code> creates a static <code>ggplot2</code> map with optional coloured curved trajectories and arrows.</p>
+<p><code><a href="reference/donut_leaflet.html">donut_leaflet()</a></code> creates an interactive <code>leaflet</code> map with clickable donut segments, popups, hover labels, legends, and optional coloured curved trajectories with directional arrowheads. It builds the interactive donut symbols in EPSG:3857 by default and disables Leaflet simplification for donut polygons so sector separators stay visually regular.</p>
 <p><code><a href="reference/donut_polygons.html">donut_polygons()</a></code> computes an <code>sf</code> polygon layer with one donut segment per non-zero location-category pair.</p>
 <p><code><a href="reference/flow_lines.html">flow_lines()</a></code> computes straight or curved origin-destination <code>sf</code> line geometries.</p>
 </div>
@@ -100,7 +100,8 @@
 <span><span class="va">flows</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  from <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"B"</span><span class="op">)</span>,</span>
 <span>  to <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"B"</span>, <span class="st">"C"</span><span class="op">)</span>,</span>
-<span>  trips <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">30</span>, <span class="fl">10</span><span class="op">)</span></span>
+<span>  trips <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">30</span>, <span class="fl">10</span><span class="op">)</span>,</span>
+<span>  flow_category <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Transit"</span>, <span class="st">"Car"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">mode_colours</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
@@ -124,6 +125,8 @@
 <span>  from <span class="op">=</span> <span class="va">from</span>,</span>
 <span>  to <span class="op">=</span> <span class="va">to</span>,</span>
 <span>  flow_value <span class="op">=</span> <span class="va">trips</span>,</span>
+<span>  flow_group <span class="op">=</span> <span class="va">flow_category</span>,</span>
+<span>  flow_colours <span class="op">=</span> <span class="va">mode_colours</span>,</span>
 <span>  flow_curvature <span class="op">=</span> <span class="fl">0.22</span>,</span>
 <span>  flow_arrow <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  colours <span class="op">=</span> <span class="va">mode_colours</span></span>
@@ -144,11 +147,13 @@
 <span>  from <span class="op">=</span> <span class="va">from</span>,</span>
 <span>  to <span class="op">=</span> <span class="va">to</span>,</span>
 <span>  flow_value <span class="op">=</span> <span class="va">trips</span>,</span>
+<span>  flow_group <span class="op">=</span> <span class="va">flow_category</span>,</span>
+<span>  flow_colours <span class="op">=</span> <span class="va">mode_colours</span>,</span>
 <span>  flow_curvature <span class="op">=</span> <span class="fl">0.22</span>,</span>
 <span>  flow_arrow <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  colours <span class="op">=</span> <span class="va">mode_colours</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p>Use <code>flow_curvature = 0</code> for straight links, positive values for one bend direction, and negative values for the opposite direction. <code>flow_arrow = TRUE</code> adds directional arrows to the static and interactive trajectories. In <code><a href="reference/donut_leaflet.html">donut_leaflet()</a></code>, use <code>flow_arrow_size</code> to tune the arrowhead length in projected map units when the automatic size is not ideal.</p>
+<p>Use <code>flow_curvature = 0</code> for straight links, positive values for one bend direction, and negative values for the opposite direction. <code>flow_arrow = TRUE</code> adds directional arrows to the static and interactive trajectories. In <code><a href="reference/donut_leaflet.html">donut_leaflet()</a></code>, use <code>flow_arrow_size</code> to tune the arrowhead length in projected map units when the automatic size is not ideal. Use <code>flow_group</code> and <code>flow_colours</code> when the connections themselves should carry a categorical colour, for example destination municipality or flow type.</p>
 </div>
 <div class="section level2">
 <h2 id="examples-and-documentation">Examples and documentation<a class="anchor" aria-label="anchor" href="#examples-and-documentation"></a>
@@ -156,8 +161,8 @@
 <p>The pkgdown site includes a complete vignette with:</p>
 <ul>
 <li>simulated Québec/eastern Canada example data;</li>
-<li>a static <code>ggplot2</code> donut map with directional trajectories;</li>
-<li>an interactive <code>leaflet</code> donut map with clickable directional trajectories;</li>
+<li>a static <code>ggplot2</code> donut map with coloured directional trajectories;</li>
+<li>an interactive <code>leaflet</code> donut map with clickable coloured trajectories;</li>
 <li>direct use of the <code>sf</code> geometry layer.</li>
 </ul>
 <p>See <code><a href="articles/donut-maps.html">vignette("donut-maps", package = "DonutMap")</a></code> locally, or the online article:</p>

@@ -25,6 +25,7 @@ donut_leaflet(
   from = NULL,
   to = NULL,
   flow_value = NULL,
+  flow_group = NULL,
   flow_min = NULL,
   flow_weight_range = c(1, 8),
   flow_curvature = 0.18,
@@ -32,6 +33,9 @@ donut_leaflet(
   flow_arrow = TRUE,
   flow_arrow_size = NULL,
   flow_colour = "grey35",
+  flow_colours = NULL,
+  flow_legend = TRUE,
+  flow_legend_position = "topright",
   flow_opacity = 0.55,
   provider_tiles = "CartoDB.Positron",
   popup = TRUE,
@@ -121,6 +125,11 @@ donut_leaflet(
   Optional unquoted numeric column in `flows` used to scale line widths.
   If omitted, each flow receives value 1.
 
+- flow_group:
+
+  Optional unquoted column in `flows` used to colour flow lines and
+  arrowheads by group.
+
 - flow_min:
 
   Optional minimum flow value to draw.
@@ -150,7 +159,22 @@ donut_leaflet(
 
 - flow_colour:
 
-  Flow line colour.
+  Flow line colour used when `flow_group` is not supplied.
+
+- flow_colours:
+
+  Optional colours for `flow_group`. Use a named vector for stable
+  group-colour matching. If omitted and flow groups match donut
+  categories, `colours` is reused.
+
+- flow_legend:
+
+  Should a separate flow colour legend be shown when `flow_group` is
+  supplied?
+
+- flow_legend_position:
+
+  Position of the flow colour legend.
 
 - flow_opacity:
 
