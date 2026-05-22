@@ -5,9 +5,10 @@
 #' labels, a legend, and layer controls.
 #'
 #' @inheritParams donut_map
-#' @param crs Target projected CRS used to build interactive donut and trajectory
-#'   geometries. Defaults to EPSG:3857, Leaflet's default display projection, so
-#'   donut circles and sector separators remain visually regular on screen.
+#' @param crs Target projected CRS used to build interactive donut and
+#'   trajectory geometries. Defaults to EPSG:3857, Leaflet's default display
+#'   projection, so donut circles and sector separators remain visually regular
+#'   on screen.
 #' @param flow_weight_range Numeric vector of length 2 controlling interactive
 #'   flow line weights.
 #' @param flow_curvature Numeric curvature for trajectory lines. Use `0` for
@@ -24,7 +25,8 @@
 #' @param flow_opacity Flow line opacity.
 #' @param provider_tiles Leaflet provider tiles. Use `NULL` to skip tile layers.
 #' @param popup Should popups be attached to donut segments and flow lines?
-#' @param label Should hover labels be attached to donut segments and flow lines?
+#' @param label Should hover labels be attached to donut segments and flow
+#'   lines?
 #' @param prefer_canvas Should Leaflet prefer Canvas over SVG for vector
 #'   rendering? The default `FALSE` gives crisper small donut separators.
 #' @param donut_colour Donut segment border colour.
@@ -96,17 +98,22 @@ donut_leaflet <- function(data,
   lon_col <- column_name(rlang::enquo(lon), "lon", required = FALSE)
   lat_col <- column_name(rlang::enquo(lat), "lat", required = FALSE)
 
-  if (!is.logical(prefer_canvas) ||
-      length(prefer_canvas) != 1L ||
-      is.na(prefer_canvas)) {
-    stop("`prefer_canvas` must be `TRUE` or `FALSE`.", call. = FALSE)
-  }
+  check_bool(prefer_canvas, "prefer_canvas")
+  check_bool(flow_arrow, "flow_arrow")
+  check_bool(flow_legend, "flow_legend")
+  check_bool(popup, "popup")
+  check_bool(label, "label")
 
-  if (!is.numeric(donut_smooth_factor) ||
-      length(donut_smooth_factor) != 1L ||
-      !is.finite(donut_smooth_factor) ||
-      donut_smooth_factor < 0) {
-    stop("`donut_smooth_factor` must be a single non-negative number.", call. = FALSE)
+  invalid_donut_smooth_factor <- !is.numeric(donut_smooth_factor) ||
+    length(donut_smooth_factor) != 1L ||
+    !is.finite(donut_smooth_factor) ||
+    donut_smooth_factor < 0
+
+  if (invalid_donut_smooth_factor) {
+    stop(
+      "`donut_smooth_factor` must be a single non-negative number.",
+      call. = FALSE
+    )
   }
 
   if (!line_width_range_is_valid(flow_weight_range)) {
@@ -116,15 +123,20 @@ donut_leaflet <- function(data,
     )
   }
 
-  if (!is.logical(flow_legend) || length(flow_legend) != 1L || is.na(flow_legend)) {
-    stop("`flow_legend` must be `TRUE` or `FALSE`.", call. = FALSE)
-  }
+  valid_flow_legend_positions <- c(
+    "topleft",
+    "topright",
+    "bottomleft",
+    "bottomright"
+  )
+  invalid_flow_legend_position <- !is.character(flow_legend_position) ||
+    length(flow_legend_position) != 1L ||
+    !flow_legend_position %in% valid_flow_legend_positions
 
-  if (!is.character(flow_legend_position) ||
-      length(flow_legend_position) != 1L ||
-      !flow_legend_position %in% c("topleft", "topright", "bottomleft", "bottomright")) {
+  if (invalid_flow_legend_position) {
     stop(
-      "`flow_legend_position` must be one of 'topleft', 'topright', 'bottomleft', or 'bottomright'.",
+      "`flow_legend_position` must be one of 'topleft', 'topright', ",
+      "'bottomleft', or 'bottomright'.",
       call. = FALSE
     )
   }
@@ -192,7 +204,10 @@ donut_leaflet <- function(data,
     )
 
     if (is.null(flow_group_col) && !is.null(flow_colours)) {
-      stop("`flow_colours` can only be used when `flow_group` is supplied.", call. = FALSE)
+      stop(
+        "`flow_colours` can only be used when `flow_group` is supplied.",
+        call. = FALSE
+      )
     }
 
     flow_sf <- build_flow_lines(
@@ -212,7 +227,11 @@ donut_leaflet <- function(data,
     )
 
     if (!is.null(flow_min)) {
-      if (!is.numeric(flow_min) || length(flow_min) != 1L || !is.finite(flow_min)) {
+      invalid_flow_min <- !is.numeric(flow_min) ||
+        length(flow_min) != 1L ||
+        !is.finite(flow_min)
+
+      if (invalid_flow_min) {
         stop("`flow_min` must be a single finite number.", call. = FALSE)
       }
 
@@ -384,10 +403,12 @@ donut_leaflet <- function(data,
     opacity = donut_opacity
   )
 
-  if (!is.null(flow_sf) &&
-      !is.null(flow_group_col) &&
-      nrow(flow_sf) > 0L &&
-      isTRUE(flow_legend)) {
+  show_flow_legend <- !is.null(flow_sf) &&
+    !is.null(flow_group_col) &&
+    nrow(flow_sf) > 0L &&
+    isTRUE(flow_legend)
+
+  if (show_flow_legend) {
     leaflet_map <- leaflet::addLegend(
       leaflet_map,
       position = flow_legend_position,
@@ -398,7 +419,11 @@ donut_leaflet <- function(data,
     )
   }
 
-  overlay_groups <- c(if (!is.null(map_projected)) "Map", if (!is.null(flow_sf)) "Flows", "Donuts")
+  overlay_groups <- c(
+    if (!is.null(map_projected)) "Map",
+    if (!is.null(flow_sf)) "Flows",
+    "Donuts"
+  )
 
   leaflet::addLayersControl(
     leaflet_map,

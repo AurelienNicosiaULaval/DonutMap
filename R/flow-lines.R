@@ -36,7 +36,16 @@
 #' )
 #' flows <- data.frame(from = "A", to = "B", trips = 15)
 #'
-#' lines <- flow_lines(flows, locations, from, to, trips, place, lon = lon, lat = lat)
+#' lines <- flow_lines(
+#'   flows,
+#'   locations,
+#'   from,
+#'   to,
+#'   trips,
+#'   place,
+#'   lon = lon,
+#'   lat = lat
+#' )
 #' plot(lines["value"])
 flow_lines <- function(flows,
                        locations,
@@ -92,6 +101,7 @@ build_flow_lines <- function(flows,
                              drop_self = TRUE,
                              flow_curvature = 0,
                              flow_n = 30) {
+  check_bool(drop_self, "drop_self")
   check_flow_curvature(flow_curvature)
   flow_n <- check_flow_n(flow_n)
 
@@ -154,7 +164,10 @@ build_flow_lines <- function(flows,
     y = coords[, "Y"]
   )
 
-  missing_locations <- setdiff(unique(c(flow_tbl$from, flow_tbl$to)), location_tbl$id)
+  missing_locations <- setdiff(
+    unique(c(flow_tbl$from, flow_tbl$to)),
+    location_tbl$id
+  )
   if (length(missing_locations) > 0L) {
     stop(
       "No location found for id(s): ",

@@ -48,6 +48,14 @@ check_numeric_non_negative <- function(x, arg) {
   invisible(x)
 }
 
+check_bool <- function(x, arg) {
+  if (!is.logical(x) || length(x) != 1L || is.na(x)) {
+    stop("`", arg, "` must be `TRUE` or `FALSE`.", call. = FALSE)
+  }
+
+  invisible(x)
+}
+
 as_location_sf <- function(data,
                            id_col,
                            lon_col = NULL,
@@ -116,8 +124,29 @@ as_location_sf <- function(data,
     )
   }
 
+  location_data <- dplyr::mutate(location_data, id = as.character(.data$id))
+  geometry_key <- sf::st_as_text(sf::st_geometry(location_data))
+  location_keys <- tibble::tibble(
+    id = location_data$id,
+    geometry_key = geometry_key
+  )
+
+  conflicting_ids <- location_keys |>
+    dplyr::distinct() |>
+    dplyr::count(.data$id, name = "n_locations") |>
+    dplyr::filter(.data$n_locations > 1L) |>
+    dplyr::pull(.data$id)
+
+  if (length(conflicting_ids) > 0L) {
+    stop(
+      "`", data_arg, "` contains multiple locations for id(s): ",
+      paste(conflicting_ids, collapse = ", "),
+      ". Each id must have exactly one location.",
+      call. = FALSE
+    )
+  }
+
   location_data |>
-    dplyr::mutate(id = as.character(.data$id)) |>
     dplyr::group_by(.data$id) |>
     dplyr::slice(1L) |>
     dplyr::ungroup()
@@ -307,11 +336,16 @@ check_flow_arrow_size <- function(flow_arrow_size) {
     return(NULL)
   }
 
-  if (!is.numeric(flow_arrow_size) ||
-      length(flow_arrow_size) != 1L ||
-      !is.finite(flow_arrow_size) ||
-      flow_arrow_size <= 0) {
-    stop("`flow_arrow_size` must be `NULL` or a single positive number.", call. = FALSE)
+  invalid_flow_arrow_size <- !is.numeric(flow_arrow_size) ||
+    length(flow_arrow_size) != 1L ||
+    !is.finite(flow_arrow_size) ||
+    flow_arrow_size <= 0
+
+  if (invalid_flow_arrow_size) {
+    stop(
+      "`flow_arrow_size` must be `NULL` or a single positive number.",
+      call. = FALSE
+    )
   }
 
   as.numeric(flow_arrow_size)
@@ -384,7 +418,8 @@ line_path_length <- function(coords) {
     return(0)
   }
 
-  coord_diff <- coords[-1L, , drop = FALSE] - coords[-nrow(coords), , drop = FALSE]
+  coord_diff <- coords[-1L, , drop = FALSE] -
+    coords[-nrow(coords), , drop = FALSE]
   sum(sqrt(rowSums(coord_diff^2)))
 }
 
@@ -424,7 +459,10 @@ build_flow_arrowheads <- function(flow_sf,
       direction <- end - candidate
       segment_length <- sqrt(sum(direction^2))
 
-      if (is.finite(segment_length) && segment_length > sqrt(.Machine$double.eps)) {
+      valid_segment <- is.finite(segment_length) &&
+        segment_length > sqrt(.Machine$double.eps)
+
+      if (valid_segment) {
         previous <- candidate
         break
       }

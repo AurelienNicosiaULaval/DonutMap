@@ -70,6 +70,15 @@ locations <- data.frame(
 )
 flows <- data.frame(from = "A", to = "B", trips = 15)
 
-lines <- flow_lines(flows, locations, from, to, trips, place, lon = lon, lat = lat)
+lines <- flow_lines(
+  flows,
+  locations,
+  from,
+  to,
+  trips,
+  place,
+  lon = lon,
+  lat = lat
+)
 plot(lines["value"])
 }

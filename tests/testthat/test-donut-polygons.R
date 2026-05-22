@@ -35,6 +35,21 @@ test_that("donut_polygons rejects invalid values", {
   )
 })
 
+test_that("donut_polygons rejects inconsistent repeated locations", {
+  demo <- data.frame(
+    place = c("A", "A"),
+    lon = c(-71.3, -71.2),
+    lat = c(46.75, 46.8),
+    category = c("x", "y"),
+    value = c(10, 20)
+  )
+
+  expect_error(
+    donut_polygons(demo, place, category, value, lon = lon, lat = lat),
+    "multiple locations"
+  )
+})
+
 test_that("donut_polygons works with sf input", {
   demo <- data.frame(
     place = rep(c("A", "B"), each = 2),

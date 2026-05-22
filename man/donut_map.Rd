@@ -59,7 +59,8 @@ is not an \code{sf} object.}
 \item{crs}{Target projected CRS used to build the map.}
 
 \item{radius_range}{Numeric vector of length 2 giving minimum and maximum
-donut radii in map units. If \code{NULL}, a range is derived from the map extent.}
+donut radii in map units. If \code{NULL}, a range is derived from the map
+extent.}
 
 \item{inner_radius}{Numeric value in \verb{(0, 1)} giving the inner radius as a
 proportion of the outer radius.}
@@ -104,7 +105,8 @@ used when \code{flow_group} is not supplied.}
 
 \item{map_fill, map_colour}{Background map fill and outline colours.}
 
-\item{donut_colour, donut_linewidth}{Donut segment border colour and linewidth.}
+\item{donut_colour, donut_linewidth}{Donut segment border colour and
+linewidth.}
 }
 \value{
 A \code{ggplot} object.

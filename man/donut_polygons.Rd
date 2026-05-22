@@ -43,7 +43,8 @@ a projected CRS is chosen from \code{map}, \code{data}, or an estimated UTM zone
 default donut radius range.}
 
 \item{radius_range}{Numeric vector of length 2 giving minimum and maximum
-donut radii in map units. If \code{NULL}, a range is derived from the map extent.}
+donut radii in map units. If \code{NULL}, a range is derived from the map
+extent.}
 
 \item{inner_radius}{Numeric value in \verb{(0, 1)} giving the inner radius as a
 proportion of the outer radius.}

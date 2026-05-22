@@ -16,7 +16,8 @@
 #'   `sf` object with missing CRS. Defaults to EPSG:4326.
 #' @param crs Target projected CRS used to build the map.
 #' @param radius_range Numeric vector of length 2 giving minimum and maximum
-#'   donut radii in map units. If `NULL`, a range is derived from the map extent.
+#'   donut radii in map units. If `NULL`, a range is derived from the map
+#'   extent.
 #' @param inner_radius Numeric value in `(0, 1)` giving the inner radius as a
 #'   proportion of the outer radius.
 #' @param n Number of points used to approximate a complete outer circle.
@@ -44,7 +45,8 @@
 #' @param flow_colour,flow_alpha Flow line colour and alpha. `flow_colour` is
 #'   used when `flow_group` is not supplied.
 #' @param map_fill,map_colour Background map fill and outline colours.
-#' @param donut_colour,donut_linewidth Donut segment border colour and linewidth.
+#' @param donut_colour,donut_linewidth Donut segment border colour and
+#'   linewidth.
 #'
 #' @return A `ggplot` object.
 #' @export
@@ -112,6 +114,7 @@ donut_map <- function(data,
   value_col <- column_name(rlang::enquo(value), "value")
   lon_col <- column_name(rlang::enquo(lon), "lon", required = FALSE)
   lat_col <- column_name(rlang::enquo(lat), "lat", required = FALSE)
+  check_bool(flow_arrow, "flow_arrow")
 
   donuts <- build_donut_polygons(
     data = data,
@@ -144,11 +147,16 @@ donut_map <- function(data,
   flow_group_col <- NULL
   flow_colour_values <- NULL
   if (!is.null(flows)) {
-    if (!is.numeric(flow_arrow_length) ||
-        length(flow_arrow_length) != 1L ||
-        !is.finite(flow_arrow_length) ||
-        flow_arrow_length <= 0) {
-      stop("`flow_arrow_length` must be a single positive number.", call. = FALSE)
+    invalid_flow_arrow_length <- !is.numeric(flow_arrow_length) ||
+      length(flow_arrow_length) != 1L ||
+      !is.finite(flow_arrow_length) ||
+      flow_arrow_length <= 0
+
+    if (invalid_flow_arrow_length) {
+      stop(
+        "`flow_arrow_length` must be a single positive number.",
+        call. = FALSE
+      )
     }
 
     from_col <- column_name(rlang::enquo(from), "from")
@@ -165,7 +173,10 @@ donut_map <- function(data,
     )
 
     if (is.null(flow_group_col) && !is.null(flow_colours)) {
-      stop("`flow_colours` can only be used when `flow_group` is supplied.", call. = FALSE)
+      stop(
+        "`flow_colours` can only be used when `flow_group` is supplied.",
+        call. = FALSE
+      )
     }
 
     flow_sf <- build_flow_lines(
@@ -185,7 +196,11 @@ donut_map <- function(data,
     )
 
     if (!is.null(flow_min)) {
-      if (!is.numeric(flow_min) || length(flow_min) != 1L || !is.finite(flow_min)) {
+      invalid_flow_min <- !is.numeric(flow_min) ||
+        length(flow_min) != 1L ||
+        !is.finite(flow_min)
+
+      if (invalid_flow_min) {
         stop("`flow_min` must be a single finite number.", call. = FALSE)
       }
 
@@ -194,7 +209,8 @@ donut_map <- function(data,
 
     if (!line_width_range_is_valid(flow_linewidth_range)) {
       stop(
-        "`flow_linewidth_range` must be a non-negative numeric vector of length 2.",
+        "`flow_linewidth_range` must be a non-negative numeric vector ",
+        "of length 2.",
         call. = FALSE
       )
     }

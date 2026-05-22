@@ -11,7 +11,16 @@ test_that("flow_lines creates straight lines and drops self-flows", {
     trips = c(15, 99, 10)
   )
 
-  out <- flow_lines(flows, locations, from, to, trips, place, lon = lon, lat = lat)
+  out <- flow_lines(
+    flows,
+    locations,
+    from,
+    to,
+    trips,
+    place,
+    lon = lon,
+    lat = lat
+  )
 
   expect_s3_class(out, "sf")
   expect_equal(nrow(out), 2L)
@@ -44,7 +53,9 @@ test_that("flow_lines creates curved trajectories", {
   coords <- sf::st_coordinates(out)
 
   expect_equal(nrow(coords), 9L)
-  expect_false(all(coords[, "Y"] == seq(coords[1, "Y"], coords[9, "Y"], length.out = 9)))
+  expect_false(
+    all(coords[, "Y"] == seq(coords[1, "Y"], coords[9, "Y"], length.out = 9))
+  )
 })
 
 test_that("flow_lines preserves optional flow groups", {
@@ -103,6 +114,46 @@ test_that("flow_lines validates trajectory settings", {
   )
 })
 
+test_that("flow_lines validates drop_self", {
+  locations <- data.frame(
+    place = c("A", "B"),
+    lon = c(-71.3, -71.1),
+    lat = c(46.75, 46.85)
+  )
+
+  flows <- data.frame(from = "A", to = "A", trips = 15)
+
+  expect_error(
+    flow_lines(
+      flows,
+      locations,
+      from,
+      to,
+      trips,
+      place,
+      lon = lon,
+      lat = lat,
+      drop_self = NA
+    ),
+    "drop_self"
+  )
+})
+
+test_that("flow_lines rejects inconsistent repeated locations", {
+  locations <- data.frame(
+    place = c("A", "A", "B"),
+    lon = c(-71.3, -71.2, -71.1),
+    lat = c(46.75, 46.8, 46.85)
+  )
+
+  flows <- data.frame(from = "A", to = "B", trips = 15)
+
+  expect_error(
+    flow_lines(flows, locations, from, to, trips, place, lon = lon, lat = lat),
+    "multiple locations"
+  )
+})
+
 test_that("flow_lines reports missing locations", {
   locations <- data.frame(
     place = "A",
@@ -113,7 +164,16 @@ test_that("flow_lines reports missing locations", {
   flows <- data.frame(from = "A", to = "B", trips = 15)
 
   expect_error(
-    flow_lines(flows, locations, from, to, trips, place, lon = lon, lat = lat),
+    flow_lines(
+      flows,
+      locations,
+      from,
+      to,
+      trips,
+      place,
+      lon = lon,
+      lat = lat
+    ),
     "No location found"
   )
 })

@@ -18,7 +18,8 @@
 #' @param map Optional `sf` object used only to choose the working CRS and
 #'   default donut radius range.
 #' @param radius_range Numeric vector of length 2 giving minimum and maximum
-#'   donut radii in map units. If `NULL`, a range is derived from the map extent.
+#'   donut radii in map units. If `NULL`, a range is derived from the map
+#'   extent.
 #' @param inner_radius Numeric value in `(0, 1)` giving the inner radius as a
 #'   proportion of the outer radius.
 #' @param n Number of points used to approximate a complete outer circle.
@@ -108,7 +109,10 @@ build_donut_polygons <- function(data,
   }
 
   if (!is.numeric(n) || length(n) != 1L || !is.finite(n) || n < 16) {
-    stop("`n` must be a single number greater than or equal to 16.", call. = FALSE)
+    stop(
+      "`n` must be a single number greater than or equal to 16.",
+      call. = FALSE
+    )
   }
 
   n <- as.integer(n)

@@ -22,6 +22,46 @@ test_that("donut_leaflet returns a leaflet htmlwidget", {
   expect_identical(donut_options$smoothFactor, 0)
 })
 
+test_that("donut_leaflet attaches escaped popups and labels", {
+  demo <- data.frame(
+    place = rep(c("A & B", "C"), each = 2),
+    lon = rep(c(-71.3, -71.1), each = 2),
+    lat = rep(c(46.75, 46.85), each = 2),
+    category = rep(c("x < 1", "y"), times = 2),
+    value = c(10, 20, 5, 15)
+  )
+
+  widget <- donut_leaflet(demo, place, category, value, lon = lon, lat = lat)
+  polygon_calls <- Filter(
+    function(call) identical(call$method, "addPolygons"),
+    widget$x$calls
+  )
+  donut_call <- polygon_calls[[length(polygon_calls)]]
+
+  expect_true(any(grepl("A &amp; B", donut_call$args[[5]], fixed = TRUE)))
+  expect_true(any(grepl("x &lt; 1", donut_call$args[[5]], fixed = TRUE)))
+  expect_length(donut_call$args[[7]], 4L)
+
+  widget_hidden <- donut_leaflet(
+    demo,
+    place,
+    category,
+    value,
+    lon = lon,
+    lat = lat,
+    popup = FALSE,
+    label = FALSE
+  )
+  hidden_polygon_calls <- Filter(
+    function(call) identical(call$method, "addPolygons"),
+    widget_hidden$x$calls
+  )
+  hidden_donut_call <- hidden_polygon_calls[[length(hidden_polygon_calls)]]
+
+  expect_null(hidden_donut_call$args[[5]])
+  expect_null(hidden_donut_call$args[[7]])
+})
+
 test_that("donut_leaflet supports flow lines", {
   demo <- data.frame(
     place = rep(c("A", "B"), each = 2),
@@ -55,8 +95,17 @@ test_that("donut_leaflet supports flow lines", {
     function(call) call$method,
     character(1)
   )
+  flow_call <- Filter(
+    function(call) identical(call$method, "addPolylines"),
+    widget$x$calls
+  )[[1L]]
 
   expect_gte(sum(call_methods == "addPolygons"), 2L)
+  expect_identical(
+    flow_call$args[[5]],
+    "<strong>A &rarr; B</strong><br/>Flow: 12"
+  )
+  expect_identical(flow_call$args[[7]], "A -&gt; B: 12")
 })
 
 test_that("donut_leaflet colours flow groups and arrowheads", {
@@ -192,5 +241,67 @@ test_that("donut_leaflet validates interactive arrowhead size", {
       prefer_canvas = NA
     ),
     "prefer_canvas"
+  )
+})
+
+test_that("donut_leaflet validates boolean controls", {
+  demo <- data.frame(
+    place = "A",
+    lon = -71.3,
+    lat = 46.75,
+    category = "x",
+    value = 10
+  )
+
+  expect_error(
+    donut_leaflet(
+      demo,
+      place,
+      category,
+      value,
+      lon = lon,
+      lat = lat,
+      popup = NA
+    ),
+    "popup"
+  )
+
+  expect_error(
+    donut_leaflet(
+      demo,
+      place,
+      category,
+      value,
+      lon = lon,
+      lat = lat,
+      label = "yes"
+    ),
+    "label"
+  )
+
+  expect_error(
+    donut_leaflet(
+      demo,
+      place,
+      category,
+      value,
+      lon = lon,
+      lat = lat,
+      flow_arrow = c(TRUE, FALSE)
+    ),
+    "flow_arrow"
+  )
+
+  expect_error(
+    donut_leaflet(
+      demo,
+      place,
+      category,
+      value,
+      lon = lon,
+      lat = lat,
+      flow_legend = NA
+    ),
+    "flow_legend"
   )
 })

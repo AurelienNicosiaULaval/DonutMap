@@ -81,3 +81,26 @@ test_that("donut_map supports coloured flow groups", {
   expect_s3_class(p, "ggplot")
   expect_true(any(colour_scales))
 })
+
+test_that("donut_map validates flow_arrow", {
+  demo <- data.frame(
+    place = "A",
+    lon = -71.3,
+    lat = 46.75,
+    category = "x",
+    value = 10
+  )
+
+  expect_error(
+    donut_map(
+      demo,
+      place,
+      category,
+      value,
+      lon = lon,
+      lat = lat,
+      flow_arrow = "yes"
+    ),
+    "flow_arrow"
+  )
+})

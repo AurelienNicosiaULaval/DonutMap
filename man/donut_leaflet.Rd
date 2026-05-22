@@ -66,12 +66,14 @@ is not an \code{sf} object.}
 \item{input_crs}{Coordinate reference system for \code{lon} and \code{lat}, or for an
 \code{sf} object with missing CRS. Defaults to EPSG:4326.}
 
-\item{crs}{Target projected CRS used to build interactive donut and trajectory
-geometries. Defaults to EPSG:3857, Leaflet's default display projection, so
-donut circles and sector separators remain visually regular on screen.}
+\item{crs}{Target projected CRS used to build interactive donut and
+trajectory geometries. Defaults to EPSG:3857, Leaflet's default display
+projection, so donut circles and sector separators remain visually regular
+on screen.}
 
 \item{radius_range}{Numeric vector of length 2 giving minimum and maximum
-donut radii in map units. If \code{NULL}, a range is derived from the map extent.}
+donut radii in map units. If \code{NULL}, a range is derived from the map
+extent.}
 
 \item{inner_radius}{Numeric value in \verb{(0, 1)} giving the inner radius as a
 proportion of the outer radius.}
@@ -125,7 +127,8 @@ categories, \code{colours} is reused.}
 
 \item{popup}{Should popups be attached to donut segments and flow lines?}
 
-\item{label}{Should hover labels be attached to donut segments and flow lines?}
+\item{label}{Should hover labels be attached to donut segments and flow
+lines?}
 
 \item{prefer_canvas}{Should Leaflet prefer Canvas over SVG for vector
 rendering? The default \code{FALSE} gives crisper small donut separators.}

@@ -69,10 +69,19 @@ demo$value <- c(
 demo$category <- factor(demo$category, levels = categories)
 
 flows <- data.frame(
-  from = c("Site A", "Site A", "Site B", "Site B", "Site C", "Site C", "Site D", "Site E"),
-  to = c("Site B", "Site C", "Site D", "Site A", "Site E", "Site B", "Site E", "Site C"),
+  from = c(
+    "Site A", "Site A", "Site B", "Site B",
+    "Site C", "Site C", "Site D", "Site E"
+  ),
+  to = c(
+    "Site B", "Site C", "Site D", "Site A",
+    "Site E", "Site B", "Site E", "Site C"
+  ),
   trips = c(180, 90, 120, 75, 70, 55, 60, 45),
-  flow_category = c("Transit", "Car", "Walking", "Transit", "Car", "Walking", "Walking", "Transit")
+  flow_category = c(
+    "Transit", "Car", "Walking", "Transit",
+    "Car", "Walking", "Walking", "Transit"
+  )
 )
 
 category_colours <- c(
