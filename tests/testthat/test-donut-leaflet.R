@@ -12,6 +12,14 @@ test_that("donut_leaflet returns a leaflet htmlwidget", {
   expect_s3_class(widget, "leaflet")
   expect_s3_class(widget, "htmlwidget")
   expect_false(widget$x$options$preferCanvas)
+
+  polygon_calls <- Filter(
+    function(call) identical(call$method, "addPolygons"),
+    widget$x$calls
+  )
+  donut_call <- polygon_calls[[length(polygon_calls)]]
+  donut_options <- donut_call$args[[4]]
+  expect_identical(donut_options$smoothFactor, 0)
 })
 
 test_that("donut_leaflet supports flow lines", {
@@ -99,6 +107,19 @@ test_that("donut_leaflet validates interactive arrowhead size", {
       flow_arrow_size = -1
     ),
     "flow_arrow_size"
+  )
+
+  expect_error(
+    donut_leaflet(
+      demo,
+      place,
+      category,
+      value,
+      lon = lon,
+      lat = lat,
+      donut_smooth_factor = -1
+    ),
+    "donut_smooth_factor"
   )
 
   expect_error(

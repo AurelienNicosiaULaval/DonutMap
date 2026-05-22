@@ -29,7 +29,8 @@ and arrows.
 `donut_leaflet()` creates an interactive `leaflet` map with clickable donut
 segments, popups, hover labels, legends, and optional curved trajectories with
 directional arrowheads. It builds the interactive donut symbols in EPSG:3857 by
-default so sector separators stay visually regular in Leaflet.
+default and disables Leaflet simplification for donut polygons so sector
+separators stay visually regular.
 
 `donut_polygons()` computes an `sf` polygon layer with one donut segment per
 non-zero location-category pair.

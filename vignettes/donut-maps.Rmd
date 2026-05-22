@@ -140,7 +140,9 @@ donut_map(
 lines, including arrowheads, can be clicked to open popups, and hover labels
 are enabled by default. By default, interactive donuts are constructed in
 EPSG:3857, the display projection used by Leaflet, which keeps the sector
-boundaries visually regular on screen.
+boundaries visually regular on screen. Leaflet simplification is also disabled
+for donut polygons so the sector borders are not simplified after the widget is
+rendered.
 
 ```{r interactive-map}
 donut_leaflet(
@@ -152,6 +154,7 @@ donut_leaflet(
   lat = lat,
   map = eastern_canada,
   radius_range = c(25000, 70000),
+  n = 160,
   colours = category_colours,
   flows = flows,
   from = from,

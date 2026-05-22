@@ -27,6 +27,9 @@
 #' @param donut_colour Donut segment border colour.
 #' @param donut_weight Donut segment border weight.
 #' @param donut_opacity Donut segment fill opacity.
+#' @param donut_smooth_factor Leaflet path simplification factor for donut
+#'   polygons. The default `0` preserves the donut vertices so arcs and sector
+#'   separators are not simplified by Leaflet.
 #' @param map_weight Background map border weight.
 #' @param map_opacity Background map opacity.
 #'
@@ -78,7 +81,8 @@ donut_leaflet <- function(data,
                           map_opacity = 0.9,
                           donut_colour = "#ffffff",
                           donut_weight = 1,
-                          donut_opacity = 0.9) {
+                          donut_opacity = 0.9,
+                          donut_smooth_factor = 0) {
   id_col <- column_name(rlang::enquo(id), "id")
   category_col <- column_name(rlang::enquo(category), "category")
   value_col <- column_name(rlang::enquo(value), "value")
@@ -89,6 +93,13 @@ donut_leaflet <- function(data,
       length(prefer_canvas) != 1L ||
       is.na(prefer_canvas)) {
     stop("`prefer_canvas` must be `TRUE` or `FALSE`.", call. = FALSE)
+  }
+
+  if (!is.numeric(donut_smooth_factor) ||
+      length(donut_smooth_factor) != 1L ||
+      !is.finite(donut_smooth_factor) ||
+      donut_smooth_factor < 0) {
+    stop("`donut_smooth_factor` must be a single non-negative number.", call. = FALSE)
   }
 
   if (!line_width_range_is_valid(flow_weight_range)) {
@@ -281,6 +292,7 @@ donut_leaflet <- function(data,
     color = donut_colour,
     weight = donut_weight,
     opacity = 1,
+    smoothFactor = donut_smooth_factor,
     popup = if (isTRUE(popup)) ~popup else NULL,
     label = if (isTRUE(label)) ~label else NULL,
     group = "Donuts",

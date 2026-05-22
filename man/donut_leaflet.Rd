@@ -40,7 +40,8 @@ donut_leaflet(
   map_opacity = 0.9,
   donut_colour = "#ffffff",
   donut_weight = 1,
-  donut_opacity = 0.9
+  donut_opacity = 0.9,
+  donut_smooth_factor = 0
 )
 }
 \arguments{
@@ -124,6 +125,10 @@ rendering? The default \code{FALSE} gives crisper small donut separators.}
 \item{donut_weight}{Donut segment border weight.}
 
 \item{donut_opacity}{Donut segment fill opacity.}
+
+\item{donut_smooth_factor}{Leaflet path simplification factor for donut
+polygons. The default \code{0} preserves the donut vertices so arcs and sector
+separators are not simplified by Leaflet.}
 }
 \value{
 A \code{leaflet} htmlwidget.
