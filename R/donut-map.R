@@ -1,8 +1,8 @@
 #' Draw a donut map
 #'
 #' `donut_map()` returns a `ggplot2` map with donut charts located on top of an
-#' optional `sf` background map. It can also add straight origin-destination
-#' flow lines.
+#' optional `sf` background map. It can also add origin-destination links or
+#' curved trajectories between donut locations.
 #'
 #' @param data A data frame or `sf` object. Each row is one category for one
 #'   donut location.
@@ -30,6 +30,12 @@
 #' @param flow_min Optional minimum flow value to draw.
 #' @param flow_linewidth_range Numeric vector of length 2 controlling flow line
 #'   widths.
+#' @param flow_curvature Numeric curvature for trajectory lines. Use `0` for
+#'   straight lines, positive values for one bend direction, and negative values
+#'   for the opposite direction.
+#' @param flow_n Number of points used to approximate each curved trajectory.
+#' @param flow_arrow Should static flow trajectories include arrows?
+#' @param flow_arrow_length Arrow length in inches when `flow_arrow = TRUE`.
 #' @param flow_colour,flow_alpha Flow line colour and alpha.
 #' @param map_fill,map_colour Background map fill and outline colours.
 #' @param donut_colour,donut_linewidth Donut segment border colour and linewidth.
@@ -83,6 +89,10 @@ donut_map <- function(data,
                       flow_value = NULL,
                       flow_min = NULL,
                       flow_linewidth_range = c(0.2, 2.5),
+                      flow_curvature = 0.18,
+                      flow_n = 30,
+                      flow_arrow = TRUE,
+                      flow_arrow_length = 0.12,
                       flow_colour = "grey35",
                       flow_alpha = 0.45,
                       map_fill = "grey96",
@@ -126,6 +136,13 @@ donut_map <- function(data,
 
   flow_sf <- NULL
   if (!is.null(flows)) {
+    if (!is.numeric(flow_arrow_length) ||
+        length(flow_arrow_length) != 1L ||
+        !is.finite(flow_arrow_length) ||
+        flow_arrow_length <= 0) {
+      stop("`flow_arrow_length` must be a single positive number.", call. = FALSE)
+    }
+
     from_col <- column_name(rlang::enquo(from), "from")
     to_col <- column_name(rlang::enquo(to), "to")
     flow_value_col <- column_name(
@@ -144,7 +161,9 @@ donut_map <- function(data,
       lon_col = lon_col,
       lat_col = lat_col,
       input_crs = input_crs,
-      crs = sf::st_crs(donuts)
+      crs = sf::st_crs(donuts),
+      flow_curvature = flow_curvature,
+      flow_n = flow_n
     )
 
     if (!is.null(flow_min)) {
@@ -176,13 +195,22 @@ donut_map <- function(data,
   }
 
   if (!is.null(flow_sf) && nrow(flow_sf) > 0L) {
+    flow_arrow_spec <- NULL
+    if (isTRUE(flow_arrow)) {
+      flow_arrow_spec <- grid::arrow(
+        length = grid::unit(flow_arrow_length, "inches"),
+        type = "closed"
+      )
+    }
+
     p <- p +
       ggplot2::geom_sf(
         data = flow_sf,
         ggplot2::aes(linewidth = .data$value),
         colour = flow_colour,
         alpha = flow_alpha,
-        lineend = "round"
+        lineend = "round",
+        arrow = flow_arrow_spec
       ) +
       ggplot2::scale_linewidth_continuous(
         range = sort(flow_linewidth_range),

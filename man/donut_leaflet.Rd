@@ -24,6 +24,8 @@ donut_leaflet(
   flow_value = NULL,
   flow_min = NULL,
   flow_weight_range = c(1, 8),
+  flow_curvature = 0.18,
+  flow_n = 30,
   flow_colour = "grey35",
   flow_opacity = 0.55,
   provider_tiles = "CartoDB.Positron",
@@ -82,6 +84,12 @@ line widths. If omitted, each flow receives value 1.}
 \item{flow_weight_range}{Numeric vector of length 2 controlling interactive
 flow line weights.}
 
+\item{flow_curvature}{Numeric curvature for trajectory lines. Use \code{0} for
+straight lines, positive values for one bend direction, and negative values
+for the opposite direction.}
+
+\item{flow_n}{Number of points used to approximate each curved trajectory.}
+
 \item{flow_colour}{Flow line colour.}
 
 \item{flow_opacity}{Flow line opacity.}
@@ -109,8 +117,8 @@ A \code{leaflet} htmlwidget.
 }
 \description{
 \code{donut_leaflet()} returns a \code{leaflet} htmlwidget with clickable donut
-segments, optional origin-destination flow lines, popups, labels, a legend,
-and layer controls.
+segments, optional origin-destination links or curved trajectories, popups,
+labels, a legend, and layer controls.
 }
 \examples{
 demo <- data.frame(

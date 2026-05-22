@@ -12,6 +12,15 @@ static entry point is \code{\link[=donut_map]{donut_map()}}. The main interactiv
 layer directly, and \code{\link[=flow_lines]{flow_lines()}} when you need origin-destination line
 geometries.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://aureliennicosiaulaval.github.io/DonutMap/}
+  \item \url{https://github.com/AurelienNicosiaULaval/DonutMap}
+  \item Report bugs at \url{https://github.com/AurelienNicosiaULaval/DonutMap/issues}
+}
+
+}
 \author{
 \strong{Maintainer}: Aurélien Nicosia \email{116816597+AurelienNicosiaULaval@users.noreply.github.com}
 

@@ -23,15 +23,17 @@ devtools::install()
 
 ## Main functions
 
-`donut_map()` creates a static `ggplot2` map.
+`donut_map()` creates a static `ggplot2` map with optional curved trajectories
+and arrows.
 
 `donut_leaflet()` creates an interactive `leaflet` map with clickable donut
-segments, popups, hover labels, legends, and optional flow lines.
+segments, popups, hover labels, legends, and optional curved trajectories.
 
 `donut_polygons()` computes an `sf` polygon layer with one donut segment per
 non-zero location-category pair.
 
-`flow_lines()` computes straight origin-destination `sf` line geometries.
+`flow_lines()` computes straight or curved origin-destination `sf` line
+geometries.
 
 ## Example data
 
@@ -74,6 +76,8 @@ donut_map(
   from = from,
   to = to,
   flow_value = trips,
+  flow_curvature = 0.22,
+  flow_arrow = TRUE,
   colours = mode_colours
 )
 ```
@@ -92,17 +96,22 @@ donut_leaflet(
   from = from,
   to = to,
   flow_value = trips,
+  flow_curvature = 0.22,
   colours = mode_colours
 )
 ```
+
+Use `flow_curvature = 0` for straight links, positive values for one bend
+direction, and negative values for the opposite direction. In `donut_map()`,
+`flow_arrow = TRUE` adds directional arrows to the static trajectories.
 
 ## Examples and documentation
 
 The pkgdown site includes a complete vignette with:
 
 - simulated Québec/eastern Canada example data;
-- a static `ggplot2` donut map;
-- an interactive `leaflet` donut map;
+- a static `ggplot2` donut map with directional trajectories;
+- an interactive `leaflet` donut map with clickable trajectories;
 - direct use of the `sf` geometry layer.
 
 See `vignette("donut-maps", package = "DonutMap")` locally, or the online

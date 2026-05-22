@@ -15,7 +15,9 @@ flow_lines(
   lat = NULL,
   input_crs = 4326,
   crs = NULL,
-  drop_self = TRUE
+  drop_self = TRUE,
+  flow_curvature = 0,
+  flow_n = 30
 )
 }
 \arguments{
@@ -42,13 +44,19 @@ Required when \code{locations} is not an \code{sf} object.}
 \code{locations} or an estimated UTM zone.}
 
 \item{drop_self}{Should self-flows be removed?}
+
+\item{flow_curvature}{Numeric curvature for trajectory lines. Use \code{0} for
+straight lines, positive values for one bend direction, and negative values
+for the opposite direction.}
+
+\item{flow_n}{Number of points used to approximate each curved trajectory.}
 }
 \value{
 An \code{sf} object with one line per retained flow.
 }
 \description{
-\code{flow_lines()} creates straight \code{sf} line geometries joining origin and
-destination locations.
+\code{flow_lines()} creates \code{sf} line geometries joining origin and destination
+locations. Lines can be straight or curved trajectories.
 }
 \examples{
 locations <- data.frame(

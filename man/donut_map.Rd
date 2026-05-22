@@ -24,6 +24,10 @@ donut_map(
   flow_value = NULL,
   flow_min = NULL,
   flow_linewidth_range = c(0.2, 2.5),
+  flow_curvature = 0.18,
+  flow_n = 30,
+  flow_arrow = TRUE,
+  flow_arrow_length = 0.12,
   flow_colour = "grey35",
   flow_alpha = 0.45,
   map_fill = "grey96",
@@ -76,6 +80,16 @@ line widths. If omitted, each flow receives value 1.}
 \item{flow_linewidth_range}{Numeric vector of length 2 controlling flow line
 widths.}
 
+\item{flow_curvature}{Numeric curvature for trajectory lines. Use \code{0} for
+straight lines, positive values for one bend direction, and negative values
+for the opposite direction.}
+
+\item{flow_n}{Number of points used to approximate each curved trajectory.}
+
+\item{flow_arrow}{Should static flow trajectories include arrows?}
+
+\item{flow_arrow_length}{Arrow length in inches when \code{flow_arrow = TRUE}.}
+
 \item{flow_colour, flow_alpha}{Flow line colour and alpha.}
 
 \item{map_fill, map_colour}{Background map fill and outline colours.}
@@ -87,8 +101,8 @@ A \code{ggplot} object.
 }
 \description{
 \code{donut_map()} returns a \code{ggplot2} map with donut charts located on top of an
-optional \code{sf} background map. It can also add straight origin-destination
-flow lines.
+optional \code{sf} background map. It can also add origin-destination links or
+curved trajectories between donut locations.
 }
 \examples{
 demo <- data.frame(

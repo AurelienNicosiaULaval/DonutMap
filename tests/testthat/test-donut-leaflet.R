@@ -34,7 +34,8 @@ test_that("donut_leaflet supports flow lines", {
     flows = flows,
     from = from,
     to = to,
-    flow_value = trips
+    flow_value = trips,
+    flow_curvature = 0.25
   )
 
   expect_s3_class(widget, "leaflet")

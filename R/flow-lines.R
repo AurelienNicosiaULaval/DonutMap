@@ -1,7 +1,7 @@
 #' Compute origin-destination flow lines
 #'
-#' `flow_lines()` creates straight `sf` line geometries joining origin and
-#' destination locations.
+#' `flow_lines()` creates `sf` line geometries joining origin and destination
+#' locations. Lines can be straight or curved trajectories.
 #'
 #' @param flows A data frame containing origin-destination pairs.
 #' @param locations A data frame or `sf` object containing one or more rows per
@@ -18,6 +18,10 @@
 #' @param crs Target projected CRS. If `NULL`, a projected CRS is selected from
 #'   `locations` or an estimated UTM zone.
 #' @param drop_self Should self-flows be removed?
+#' @param flow_curvature Numeric curvature for trajectory lines. Use `0` for
+#'   straight lines, positive values for one bend direction, and negative values
+#'   for the opposite direction.
+#' @param flow_n Number of points used to approximate each curved trajectory.
 #'
 #' @return An `sf` object with one line per retained flow.
 #' @export
@@ -42,7 +46,9 @@ flow_lines <- function(flows,
                        lat = NULL,
                        input_crs = 4326,
                        crs = NULL,
-                       drop_self = TRUE) {
+                       drop_self = TRUE,
+                       flow_curvature = 0,
+                       flow_n = 30) {
   from_col <- column_name(rlang::enquo(from), "from")
   to_col <- column_name(rlang::enquo(to), "to")
   value_col <- column_name(rlang::enquo(value), "value", required = FALSE)
@@ -61,7 +67,9 @@ flow_lines <- function(flows,
     lat_col = lat_col,
     input_crs = input_crs,
     crs = crs,
-    drop_self = drop_self
+    drop_self = drop_self,
+    flow_curvature = flow_curvature,
+    flow_n = flow_n
   )
 }
 
@@ -75,7 +83,12 @@ build_flow_lines <- function(flows,
                              lat_col = NULL,
                              input_crs = 4326,
                              crs = NULL,
-                             drop_self = TRUE) {
+                             drop_self = TRUE,
+                             flow_curvature = 0,
+                             flow_n = 30) {
+  check_flow_curvature(flow_curvature)
+  flow_n <- check_flow_n(flow_n)
+
   flow_tbl_raw <- tibble::as_tibble(flows)
   check_columns(flow_tbl_raw, c(from_col, to_col), data_arg = "flows")
 
@@ -150,11 +163,13 @@ build_flow_lines <- function(flows,
   lines <- vector("list", nrow(line_tbl))
 
   for (i in seq_len(nrow(line_tbl))) {
-    lines[[i]] <- sf::st_linestring(
-      rbind(
-        c(line_tbl$x_from[[i]], line_tbl$y_from[[i]]),
-        c(line_tbl$x_to[[i]], line_tbl$y_to[[i]])
-      )
+    lines[[i]] <- make_flow_linestring(
+      x_from = line_tbl$x_from[[i]],
+      y_from = line_tbl$y_from[[i]],
+      x_to = line_tbl$x_to[[i]],
+      y_to = line_tbl$y_to[[i]],
+      curvature = flow_curvature,
+      n = flow_n
     )
   }
 

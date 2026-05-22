@@ -22,11 +22,12 @@ has three main workflows:
 1. `donut_polygons()` creates an `sf` polygon layer.
 2. `donut_map()` creates a static `ggplot2` map.
 3. `donut_leaflet()` creates an interactive `leaflet` map with clickable
-   donut segments and optional flow lines.
+   donut segments and optional links or curved trajectories.
 
 The examples below use a Natural Earth boundary loaded with `rnaturalearth`
 (Natural Earth, n.d., <https://www.naturalearthdata.com/>). The point-level
-category values and flows are simulated for demonstration.
+category values and origin-destination trajectories are simulated for
+demonstration.
 
 ```{r setup}
 library(DonutMap)
@@ -101,7 +102,9 @@ eastern_canada <- sf::st_crop(
 ## Static map
 
 `donut_map()` returns a normal `ggplot` object, so additional `ggplot2` layers,
-scales, labels, and themes can be added afterwards.
+scales, labels, and themes can be added afterwards. The `flows` argument adds
+links between donut locations. Use `flow_curvature = 0` for straight links, and
+larger positive or negative values for curved trajectories.
 
 ```{r static-map}
 donut_map(
@@ -119,7 +122,9 @@ donut_map(
   from = from,
   to = to,
   flow_value = trips,
-  flow_linewidth_range = c(0.3, 2.2)
+  flow_linewidth_range = c(0.3, 2.2),
+  flow_curvature = 0.22,
+  flow_arrow = TRUE
 ) +
   labs(
     title = "Simulated mobility composition by site",
@@ -131,8 +136,8 @@ donut_map(
 
 ## Interactive map
 
-`donut_leaflet()` returns a `leaflet` htmlwidget. Donut segments and flow lines
-can be clicked to open popups, and hover labels are enabled by default.
+`donut_leaflet()` returns a `leaflet` htmlwidget. Donut segments and trajectory
+lines can be clicked to open popups, and hover labels are enabled by default.
 
 ```{r interactive-map}
 donut_leaflet(
@@ -150,8 +155,33 @@ donut_leaflet(
   from = from,
   to = to,
   flow_value = trips,
-  flow_weight_range = c(1, 7)
+  flow_weight_range = c(1, 7),
+  flow_curvature = 0.22
 )
+```
+
+## Trajectory geometries
+
+`flow_lines()` returns the trajectory layer directly as an `sf` object. This is
+useful when you want to build a custom map layer or inspect the geometry before
+plotting.
+
+```{r trajectory-layer}
+trajectories <- flow_lines(
+  flows,
+  demo,
+  from,
+  to,
+  trips,
+  site,
+  lon = lon,
+  lat = lat,
+  crs = 3347,
+  flow_curvature = 0.22,
+  flow_n = 40
+)
+
+trajectories
 ```
 
 ## Using the geometry layer directly

@@ -278,6 +278,72 @@ line_width_range_is_valid <- function(x) {
     all(x >= 0)
 }
 
+check_flow_curvature <- function(curvature) {
+  if (!is.numeric(curvature) || length(curvature) != 1L) {
+    stop("`flow_curvature` must be a single numeric value.", call. = FALSE)
+  }
+
+  if (!is.finite(curvature)) {
+    stop("`flow_curvature` must be finite.", call. = FALSE)
+  }
+
+  invisible(curvature)
+}
+
+check_flow_n <- function(flow_n) {
+  if (!is.numeric(flow_n) || length(flow_n) != 1L || !is.finite(flow_n)) {
+    stop("`flow_n` must be a single finite number.", call. = FALSE)
+  }
+
+  if (flow_n < 2) {
+    stop("`flow_n` must be greater than or equal to 2.", call. = FALSE)
+  }
+
+  as.integer(flow_n)
+}
+
+make_flow_linestring <- function(x_from,
+                                 y_from,
+                                 x_to,
+                                 y_to,
+                                 curvature = 0,
+                                 n = 30) {
+  if (isTRUE(all.equal(curvature, 0))) {
+    return(sf::st_linestring(
+      rbind(
+        c(x_from, y_from),
+        c(x_to, y_to)
+      )
+    ))
+  }
+
+  dx <- x_to - x_from
+  dy <- y_to - y_from
+  distance <- sqrt(dx^2 + dy^2)
+
+  if (!is.finite(distance) || distance == 0) {
+    return(sf::st_linestring(
+      rbind(
+        c(x_from, y_from),
+        c(x_to, y_to)
+      )
+    ))
+  }
+
+  midpoint_x <- (x_from + x_to) / 2
+  midpoint_y <- (y_from + y_to) / 2
+  control_x <- midpoint_x - dy / distance * distance * curvature
+  control_y <- midpoint_y + dx / distance * distance * curvature
+  t <- seq(0, 1, length.out = n)
+
+  coords <- cbind(
+    (1 - t)^2 * x_from + 2 * (1 - t) * t * control_x + t^2 * x_to,
+    (1 - t)^2 * y_from + 2 * (1 - t) * t * control_y + t^2 * y_to
+  )
+
+  sf::st_linestring(coords)
+}
+
 resolve_colours <- function(categories, colours = NULL) {
   categories <- as.character(categories)
 

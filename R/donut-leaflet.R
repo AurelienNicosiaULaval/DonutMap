@@ -1,12 +1,16 @@
 #' Draw an interactive donut map
 #'
 #' `donut_leaflet()` returns a `leaflet` htmlwidget with clickable donut
-#' segments, optional origin-destination flow lines, popups, labels, a legend,
-#' and layer controls.
+#' segments, optional origin-destination links or curved trajectories, popups,
+#' labels, a legend, and layer controls.
 #'
 #' @inheritParams donut_map
 #' @param flow_weight_range Numeric vector of length 2 controlling interactive
 #'   flow line weights.
+#' @param flow_curvature Numeric curvature for trajectory lines. Use `0` for
+#'   straight lines, positive values for one bend direction, and negative values
+#'   for the opposite direction.
+#' @param flow_n Number of points used to approximate each curved trajectory.
 #' @param flow_colour Flow line colour.
 #' @param flow_opacity Flow line opacity.
 #' @param provider_tiles Leaflet provider tiles. Use `NULL` to skip tile layers.
@@ -50,6 +54,8 @@ donut_leaflet <- function(data,
                           flow_value = NULL,
                           flow_min = NULL,
                           flow_weight_range = c(1, 8),
+                          flow_curvature = 0.18,
+                          flow_n = 30,
                           flow_colour = "grey35",
                           flow_opacity = 0.55,
                           provider_tiles = "CartoDB.Positron",
@@ -139,7 +145,9 @@ donut_leaflet <- function(data,
       lon_col = lon_col,
       lat_col = lat_col,
       input_crs = input_crs,
-      crs = sf::st_crs(donuts)
+      crs = sf::st_crs(donuts),
+      flow_curvature = flow_curvature,
+      flow_n = flow_n
     )
 
     if (!is.null(flow_min)) {
