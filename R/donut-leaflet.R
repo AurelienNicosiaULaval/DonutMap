@@ -5,6 +5,9 @@
 #' labels, a legend, and layer controls.
 #'
 #' @inheritParams donut_map
+#' @param crs Target projected CRS used to build interactive donut and trajectory
+#'   geometries. Defaults to EPSG:3857, Leaflet's default display projection, so
+#'   donut circles and sector separators remain visually regular on screen.
 #' @param flow_weight_range Numeric vector of length 2 controlling interactive
 #'   flow line weights.
 #' @param flow_curvature Numeric curvature for trajectory lines. Use `0` for
@@ -19,6 +22,8 @@
 #' @param provider_tiles Leaflet provider tiles. Use `NULL` to skip tile layers.
 #' @param popup Should popups be attached to donut segments and flow lines?
 #' @param label Should hover labels be attached to donut segments and flow lines?
+#' @param prefer_canvas Should Leaflet prefer Canvas over SVG for vector
+#'   rendering? The default `FALSE` gives crisper small donut separators.
 #' @param donut_colour Donut segment border colour.
 #' @param donut_weight Donut segment border weight.
 #' @param donut_opacity Donut segment fill opacity.
@@ -46,7 +51,7 @@ donut_leaflet <- function(data,
                           lon = NULL,
                           lat = NULL,
                           input_crs = 4326,
-                          crs = NULL,
+                          crs = 3857,
                           radius_range = NULL,
                           inner_radius = 0.55,
                           n = 96,
@@ -66,6 +71,7 @@ donut_leaflet <- function(data,
                           provider_tiles = "CartoDB.Positron",
                           popup = TRUE,
                           label = TRUE,
+                          prefer_canvas = FALSE,
                           map_fill = "#f3f4f6",
                           map_colour = "#ffffff",
                           map_weight = 1,
@@ -78,6 +84,12 @@ donut_leaflet <- function(data,
   value_col <- column_name(rlang::enquo(value), "value")
   lon_col <- column_name(rlang::enquo(lon), "lon", required = FALSE)
   lat_col <- column_name(rlang::enquo(lat), "lat", required = FALSE)
+
+  if (!is.logical(prefer_canvas) ||
+      length(prefer_canvas) != 1L ||
+      is.na(prefer_canvas)) {
+    stop("`prefer_canvas` must be `TRUE` or `FALSE`.", call. = FALSE)
+  }
 
   if (!line_width_range_is_valid(flow_weight_range)) {
     stop(
@@ -206,7 +218,9 @@ donut_leaflet <- function(data,
   }
 
   donuts_leaflet <- sf::st_transform(donuts, 4326)
-  leaflet_map <- leaflet::leaflet(options = leaflet::leafletOptions(preferCanvas = TRUE))
+  leaflet_map <- leaflet::leaflet(
+    options = leaflet::leafletOptions(preferCanvas = prefer_canvas)
+  )
 
   if (!is.null(provider_tiles)) {
     leaflet_map <- leaflet::addProviderTiles(
