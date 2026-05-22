@@ -78,7 +78,7 @@
 <h2 id="main-functions">Main functions<a class="anchor" aria-label="anchor" href="#main-functions"></a>
 </h2>
 <p><code><a href="reference/donut_map.html">donut_map()</a></code> creates a static <code>ggplot2</code> map with optional curved trajectories and arrows.</p>
-<p><code><a href="reference/donut_leaflet.html">donut_leaflet()</a></code> creates an interactive <code>leaflet</code> map with clickable donut segments, popups, hover labels, legends, and optional curved trajectories with directional arrowheads. It builds the interactive donut symbols in EPSG:3857 by default so sector separators stay visually regular in Leaflet.</p>
+<p><code><a href="reference/donut_leaflet.html">donut_leaflet()</a></code> creates an interactive <code>leaflet</code> map with clickable donut segments, popups, hover labels, legends, and optional curved trajectories with directional arrowheads. It builds the interactive donut symbols in EPSG:3857 by default and disables Leaflet simplification for donut polygons so sector separators stay visually regular.</p>
 <p><code><a href="reference/donut_polygons.html">donut_polygons()</a></code> computes an <code>sf</code> polygon layer with one donut segment per non-zero location-category pair.</p>
 <p><code><a href="reference/flow_lines.html">flow_lines()</a></code> computes straight or curved origin-destination <code>sf</code> line geometries.</p>
 </div>
