@@ -59,6 +59,65 @@ test_that("donut_leaflet supports flow lines", {
   expect_gte(sum(call_methods == "addPolygons"), 2L)
 })
 
+test_that("donut_leaflet colours flow groups and arrowheads", {
+  demo <- data.frame(
+    place = rep(c("A", "B", "C"), each = 2),
+    lon = rep(c(-71.3, -71.1, -71.2), each = 2),
+    lat = rep(c(46.75, 46.85, 46.8), each = 2),
+    category = rep(c("x", "y"), times = 3),
+    value = c(10, 20, 5, 15, 8, 12)
+  )
+
+  flows <- data.frame(
+    from = c("A", "B"),
+    to = c("B", "C"),
+    trips = c(12, 6),
+    kind = c("x", "y")
+  )
+
+  widget <- donut_leaflet(
+    demo,
+    place,
+    category,
+    value,
+    lon = lon,
+    lat = lat,
+    flows = flows,
+    from = from,
+    to = to,
+    flow_value = trips,
+    flow_group = kind,
+    flow_colours = c(x = "#111111", y = "#222222"),
+    flow_arrow = TRUE
+  )
+
+  polyline_call <- Filter(
+    function(call) identical(call$method, "addPolylines"),
+    widget$x$calls
+  )[[1L]]
+  flow_options <- polyline_call$args[[4]]
+
+  flow_arrow_call <- Filter(
+    function(call) {
+      identical(call$method, "addPolygons") &&
+        identical(call$args[[3]], "Flows")
+    },
+    widget$x$calls
+  )[[1L]]
+  arrow_options <- flow_arrow_call$args[[4]]
+
+  legend_calls <- Filter(
+    function(call) identical(call$method, "addLegend"),
+    widget$x$calls
+  )
+  flow_legend <- legend_calls[[2L]]$args[[1L]]
+
+  expect_identical(flow_options$color, c("#111111", "#222222"))
+  expect_identical(arrow_options$fillColor, c("#111111", "#222222"))
+  expect_identical(flow_legend$title, "kind")
+  expect_identical(as.character(flow_legend$colors), c("#111111", "#222222"))
+})
+
 test_that("donut_leaflet supports canvas rendering when requested", {
   demo <- data.frame(
     place = rep(c("A", "B"), each = 2),

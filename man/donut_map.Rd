@@ -22,6 +22,8 @@ donut_map(
   from = NULL,
   to = NULL,
   flow_value = NULL,
+  flow_group = NULL,
+  flow_colours = NULL,
   flow_min = NULL,
   flow_linewidth_range = c(0.2, 2.5),
   flow_curvature = 0.18,
@@ -75,6 +77,13 @@ ids. Required when \code{flows} is supplied.}
 \item{flow_value}{Optional unquoted numeric column in \code{flows} used to scale
 line widths. If omitted, each flow receives value 1.}
 
+\item{flow_group}{Optional unquoted column in \code{flows} used to colour flow
+lines and arrowheads by group.}
+
+\item{flow_colours}{Optional colours for \code{flow_group}. Use a named vector for
+stable group-colour matching. If omitted and flow groups match donut
+categories, \code{colours} is reused.}
+
 \item{flow_min}{Optional minimum flow value to draw.}
 
 \item{flow_linewidth_range}{Numeric vector of length 2 controlling flow line
@@ -90,7 +99,8 @@ for the opposite direction.}
 
 \item{flow_arrow_length}{Arrow length in inches when \code{flow_arrow = TRUE}.}
 
-\item{flow_colour, flow_alpha}{Flow line colour and alpha.}
+\item{flow_colour, flow_alpha}{Flow line colour and alpha. \code{flow_colour} is
+used when \code{flow_group} is not supplied.}
 
 \item{map_fill, map_colour}{Background map fill and outline colours.}
 

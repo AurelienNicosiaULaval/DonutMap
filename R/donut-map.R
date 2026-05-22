@@ -27,6 +27,11 @@
 #'   ids. Required when `flows` is supplied.
 #' @param flow_value Optional unquoted numeric column in `flows` used to scale
 #'   line widths. If omitted, each flow receives value 1.
+#' @param flow_group Optional unquoted column in `flows` used to colour flow
+#'   lines and arrowheads by group.
+#' @param flow_colours Optional colours for `flow_group`. Use a named vector for
+#'   stable group-colour matching. If omitted and flow groups match donut
+#'   categories, `colours` is reused.
 #' @param flow_min Optional minimum flow value to draw.
 #' @param flow_linewidth_range Numeric vector of length 2 controlling flow line
 #'   widths.
@@ -36,7 +41,8 @@
 #' @param flow_n Number of points used to approximate each curved trajectory.
 #' @param flow_arrow Should static flow trajectories include arrows?
 #' @param flow_arrow_length Arrow length in inches when `flow_arrow = TRUE`.
-#' @param flow_colour,flow_alpha Flow line colour and alpha.
+#' @param flow_colour,flow_alpha Flow line colour and alpha. `flow_colour` is
+#'   used when `flow_group` is not supplied.
 #' @param map_fill,map_colour Background map fill and outline colours.
 #' @param donut_colour,donut_linewidth Donut segment border colour and linewidth.
 #'
@@ -87,6 +93,8 @@ donut_map <- function(data,
                       from = NULL,
                       to = NULL,
                       flow_value = NULL,
+                      flow_group = NULL,
+                      flow_colours = NULL,
                       flow_min = NULL,
                       flow_linewidth_range = c(0.2, 2.5),
                       flow_curvature = 0.18,
@@ -120,10 +128,8 @@ donut_map <- function(data,
     n = n
   )
 
-  if (!is.null(colours)) {
-    categories <- levels(donuts$category)
-    colours <- resolve_colours(categories, colours)
-  }
+  categories <- levels(donuts$category)
+  colour_values <- resolve_colours(categories, colours)
 
   map_projected <- NULL
   if (!is.null(map)) {
@@ -135,6 +141,8 @@ donut_map <- function(data,
   }
 
   flow_sf <- NULL
+  flow_group_col <- NULL
+  flow_colour_values <- NULL
   if (!is.null(flows)) {
     if (!is.numeric(flow_arrow_length) ||
         length(flow_arrow_length) != 1L ||
@@ -150,6 +158,15 @@ donut_map <- function(data,
       "flow_value",
       required = FALSE
     )
+    flow_group_col <- column_name(
+      rlang::enquo(flow_group),
+      "flow_group",
+      required = FALSE
+    )
+
+    if (is.null(flow_group_col) && !is.null(flow_colours)) {
+      stop("`flow_colours` can only be used when `flow_group` is supplied.", call. = FALSE)
+    }
 
     flow_sf <- build_flow_lines(
       flows = flows,
@@ -157,6 +174,7 @@ donut_map <- function(data,
       from_col = from_col,
       to_col = to_col,
       value_col = flow_value_col,
+      group_col = flow_group_col,
       id_col = id_col,
       lon_col = lon_col,
       lat_col = lat_col,
@@ -178,6 +196,14 @@ donut_map <- function(data,
       stop(
         "`flow_linewidth_range` must be a non-negative numeric vector of length 2.",
         call. = FALSE
+      )
+    }
+
+    if (!is.null(flow_group_col) && nrow(flow_sf) > 0L) {
+      flow_colour_values <- resolve_flow_colours(
+        flow_groups = flow_sf$group,
+        flow_colours = flow_colours,
+        donut_colours = colour_values
       )
     }
   }
@@ -203,15 +229,33 @@ donut_map <- function(data,
       )
     }
 
+    if (!is.null(flow_group_col)) {
+      p <- p +
+        ggplot2::geom_sf(
+          data = flow_sf,
+          ggplot2::aes(linewidth = .data$value, colour = .data$group),
+          alpha = flow_alpha,
+          lineend = "round",
+          arrow = flow_arrow_spec
+        ) +
+        ggplot2::scale_colour_manual(
+          values = flow_colour_values,
+          name = flow_group_col,
+          drop = FALSE
+        )
+    } else {
+      p <- p +
+        ggplot2::geom_sf(
+          data = flow_sf,
+          ggplot2::aes(linewidth = .data$value),
+          colour = flow_colour,
+          alpha = flow_alpha,
+          lineend = "round",
+          arrow = flow_arrow_spec
+        )
+    }
+
     p <- p +
-      ggplot2::geom_sf(
-        data = flow_sf,
-        ggplot2::aes(linewidth = .data$value),
-        colour = flow_colour,
-        alpha = flow_alpha,
-        lineend = "round",
-        arrow = flow_arrow_spec
-      ) +
       ggplot2::scale_linewidth_continuous(
         range = sort(flow_linewidth_range),
         name = if (!is.null(flow_value_col)) flow_value_col else "flow"
@@ -228,10 +272,8 @@ donut_map <- function(data,
     ggplot2::coord_sf(datum = NA) +
     ggplot2::labs(fill = category_col)
 
-  if (!is.null(colours)) {
-    p <- p +
-      ggplot2::scale_fill_manual(values = colours, drop = FALSE)
-  }
+  p <- p +
+    ggplot2::scale_fill_manual(values = colour_values, drop = FALSE)
 
   p +
     ggplot2::theme_minimal() +

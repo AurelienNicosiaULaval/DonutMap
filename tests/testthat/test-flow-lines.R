@@ -47,6 +47,37 @@ test_that("flow_lines creates curved trajectories", {
   expect_false(all(coords[, "Y"] == seq(coords[1, "Y"], coords[9, "Y"], length.out = 9)))
 })
 
+test_that("flow_lines preserves optional flow groups", {
+  locations <- data.frame(
+    place = c("A", "B", "C"),
+    lon = c(-71.3, -71.1, -71.2),
+    lat = c(46.75, 46.85, 46.8)
+  )
+
+  flows <- data.frame(
+    from = c("A", "B", "C"),
+    to = c("B", "B", "A"),
+    trips = c(15, 99, 10),
+    kind = factor(c("x", "y", "x"), levels = c("x", "y"))
+  )
+
+  out <- flow_lines(
+    flows,
+    locations,
+    from,
+    to,
+    trips,
+    place,
+    group = kind,
+    lon = lon,
+    lat = lat
+  )
+
+  expect_equal(nrow(out), 2L)
+  expect_equal(as.character(out$group), c("x", "x"))
+  expect_equal(levels(out$group), c("x", "y"))
+})
+
 test_that("flow_lines validates trajectory settings", {
   locations <- data.frame(
     place = c("A", "B"),

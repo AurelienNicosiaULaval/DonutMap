@@ -22,6 +22,7 @@ donut_leaflet(
   from = NULL,
   to = NULL,
   flow_value = NULL,
+  flow_group = NULL,
   flow_min = NULL,
   flow_weight_range = c(1, 8),
   flow_curvature = 0.18,
@@ -29,6 +30,9 @@ donut_leaflet(
   flow_arrow = TRUE,
   flow_arrow_size = NULL,
   flow_colour = "grey35",
+  flow_colours = NULL,
+  flow_legend = TRUE,
+  flow_legend_position = "topright",
   flow_opacity = 0.55,
   provider_tiles = "CartoDB.Positron",
   popup = TRUE,
@@ -85,6 +89,9 @@ ids. Required when \code{flows} is supplied.}
 \item{flow_value}{Optional unquoted numeric column in \code{flows} used to scale
 line widths. If omitted, each flow receives value 1.}
 
+\item{flow_group}{Optional unquoted column in \code{flows} used to colour flow
+lines and arrowheads by group.}
+
 \item{flow_min}{Optional minimum flow value to draw.}
 
 \item{flow_weight_range}{Numeric vector of length 2 controlling interactive
@@ -101,7 +108,16 @@ for the opposite direction.}
 \item{flow_arrow_size}{Arrowhead length in projected map units. If \code{NULL},
 a size is derived from the donut radii.}
 
-\item{flow_colour}{Flow line colour.}
+\item{flow_colour}{Flow line colour used when \code{flow_group} is not supplied.}
+
+\item{flow_colours}{Optional colours for \code{flow_group}. Use a named vector for
+stable group-colour matching. If omitted and flow groups match donut
+categories, \code{colours} is reused.}
+
+\item{flow_legend}{Should a separate flow colour legend be shown when
+\code{flow_group} is supplied?}
+
+\item{flow_legend_position}{Position of the flow colour legend.}
 
 \item{flow_opacity}{Flow line opacity.}
 

@@ -69,9 +69,10 @@ demo$value <- c(
 demo$category <- factor(demo$category, levels = categories)
 
 flows <- data.frame(
-  from = c("Site A", "Site A", "Site B", "Site C", "Site D"),
-  to = c("Site B", "Site C", "Site D", "Site E", "Site E"),
-  trips = c(180, 90, 120, 70, 60)
+  from = c("Site A", "Site A", "Site B", "Site B", "Site C", "Site C", "Site D", "Site E"),
+  to = c("Site B", "Site C", "Site D", "Site A", "Site E", "Site B", "Site E", "Site C"),
+  trips = c(180, 90, 120, 75, 70, 55, 60, 45),
+  flow_category = c("Transit", "Car", "Walking", "Transit", "Car", "Walking", "Walking", "Transit")
 )
 
 category_colours <- c(
@@ -103,8 +104,10 @@ eastern_canada <- sf::st_crop(
 
 `donut_map()` returns a normal `ggplot` object, so additional `ggplot2` layers,
 scales, labels, and themes can be added afterwards. The `flows` argument adds
-links between donut locations. Use `flow_curvature = 0` for straight links, and
-larger positive or negative values for curved trajectories.
+links between donut locations. `flow_group` colours those links by a column in
+the flow table, which is useful for showing the municipality, mode, or class of
+each connection. Use `flow_curvature = 0` for straight links, and larger
+positive or negative values for curved trajectories.
 
 ```{r static-map}
 donut_map(
@@ -122,6 +125,8 @@ donut_map(
   from = from,
   to = to,
   flow_value = trips,
+  flow_group = flow_category,
+  flow_colours = category_colours,
   flow_linewidth_range = c(0.3, 2.2),
   flow_curvature = 0.22,
   flow_arrow = TRUE
@@ -138,11 +143,12 @@ donut_map(
 
 `donut_leaflet()` returns a `leaflet` htmlwidget. Donut segments and trajectory
 lines, including arrowheads, can be clicked to open popups, and hover labels
-are enabled by default. By default, interactive donuts are constructed in
-EPSG:3857, the display projection used by Leaflet, which keeps the sector
-boundaries visually regular on screen. Leaflet simplification is also disabled
-for donut polygons so the sector borders are not simplified after the widget is
-rendered.
+are enabled by default. When `flow_group` is supplied, both the trajectory lines
+and their arrowheads are coloured by group. By default, interactive donuts are
+constructed in EPSG:3857, the display projection used by Leaflet, which keeps
+the sector boundaries visually regular on screen. Leaflet simplification is
+also disabled for donut polygons so the sector borders are not simplified after
+the widget is rendered.
 
 ```{r interactive-map}
 donut_leaflet(
@@ -160,11 +166,12 @@ donut_leaflet(
   from = from,
   to = to,
   flow_value = trips,
+  flow_group = flow_category,
+  flow_colours = category_colours,
   flow_weight_range = c(1, 7),
   flow_curvature = 0.22,
   flow_arrow = TRUE,
   flow_arrow_size = 45000,
-  flow_colour = "#1f2937",
   flow_opacity = 0.75
 )
 ```
@@ -183,6 +190,7 @@ trajectories <- flow_lines(
   to,
   trips,
   site,
+  group = flow_category,
   lon = lon,
   lat = lat,
   crs = 3347,

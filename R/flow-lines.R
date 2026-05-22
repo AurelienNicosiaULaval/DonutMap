@@ -10,6 +10,8 @@
 #'   destination ids.
 #' @param value Optional unquoted numeric column in `flows` used as flow value.
 #'   If omitted, each flow receives value 1.
+#' @param group Optional unquoted column in `flows` used to group or colour
+#'   flow lines.
 #' @param id Unquoted location id column in `locations`.
 #' @param lon,lat Unquoted longitude and latitude columns in `locations`.
 #'   Required when `locations` is not an `sf` object.
@@ -42,6 +44,7 @@ flow_lines <- function(flows,
                        to,
                        value = NULL,
                        id,
+                       group = NULL,
                        lon = NULL,
                        lat = NULL,
                        input_crs = 4326,
@@ -52,6 +55,7 @@ flow_lines <- function(flows,
   from_col <- column_name(rlang::enquo(from), "from")
   to_col <- column_name(rlang::enquo(to), "to")
   value_col <- column_name(rlang::enquo(value), "value", required = FALSE)
+  group_col <- column_name(rlang::enquo(group), "group", required = FALSE)
   id_col <- column_name(rlang::enquo(id), "id")
   lon_col <- column_name(rlang::enquo(lon), "lon", required = FALSE)
   lat_col <- column_name(rlang::enquo(lat), "lat", required = FALSE)
@@ -62,6 +66,7 @@ flow_lines <- function(flows,
     from_col = from_col,
     to_col = to_col,
     value_col = value_col,
+    group_col = group_col,
     id_col = id_col,
     lon_col = lon_col,
     lat_col = lat_col,
@@ -78,6 +83,7 @@ build_flow_lines <- function(flows,
                              from_col,
                              to_col,
                              value_col = NULL,
+                             group_col = NULL,
                              id_col,
                              lon_col = NULL,
                              lat_col = NULL,
@@ -105,6 +111,21 @@ build_flow_lines <- function(flows,
     to = as.character(flow_tbl_raw[[to_col]]),
     value = flow_value
   )
+
+  if (!is.null(group_col)) {
+    check_columns(flow_tbl_raw, group_col, data_arg = "flows")
+    flow_group <- flow_tbl_raw[[group_col]]
+
+    if (any(is.na(flow_group))) {
+      stop("`group` cannot contain missing values.", call. = FALSE)
+    }
+
+    flow_tbl$group <- if (is.factor(flow_group)) {
+      factor(as.character(flow_group), levels = levels(flow_group))
+    } else {
+      as.character(flow_group)
+    }
+  }
 
   if (any(is.na(flow_tbl$from)) || any(is.na(flow_tbl$to))) {
     stop("`from` and `to` cannot contain missing values.", call. = FALSE)
@@ -173,8 +194,10 @@ build_flow_lines <- function(flows,
     )
   }
 
+  flow_cols <- c("from", "to", "value", if (!is.null(group_col)) "group")
+
   sf::st_sf(
-    dplyr::select(line_tbl, "from", "to", "value"),
+    dplyr::select(line_tbl, dplyr::all_of(flow_cols)),
     geometry = sf::st_sfc(lines, crs = work_crs)
   )
 }

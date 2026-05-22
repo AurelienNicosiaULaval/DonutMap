@@ -500,6 +500,30 @@ resolve_colours <- function(categories, colours = NULL) {
   colours[categories]
 }
 
+values_in_display_order <- function(x) {
+  if (is.factor(x)) {
+    return(levels(droplevels(x)))
+  }
+
+  unique(as.character(x))
+}
+
+resolve_flow_colours <- function(flow_groups,
+                                 flow_colours = NULL,
+                                 donut_colours = NULL) {
+  groups <- values_in_display_order(flow_groups)
+
+  if (!is.null(flow_colours)) {
+    return(resolve_colours(groups, flow_colours))
+  }
+
+  if (!is.null(donut_colours) && all(groups %in% names(donut_colours))) {
+    return(donut_colours[groups])
+  }
+
+  resolve_colours(groups)
+}
+
 format_map_number <- function(x) {
   format(x, big.mark = ",", scientific = FALSE, trim = TRUE)
 }

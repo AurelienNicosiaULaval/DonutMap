@@ -11,6 +11,7 @@ flow_lines(
   to,
   value = NULL,
   id,
+  group = NULL,
   lon = NULL,
   lat = NULL,
   input_crs = 4326,
@@ -33,6 +34,9 @@ destination ids.}
 If omitted, each flow receives value 1.}
 
 \item{id}{Unquoted location id column in \code{locations}.}
+
+\item{group}{Optional unquoted column in \code{flows} used to group or colour
+flow lines.}
 
 \item{lon, lat}{Unquoted longitude and latitude columns in \code{locations}.
 Required when \code{locations} is not an \code{sf} object.}

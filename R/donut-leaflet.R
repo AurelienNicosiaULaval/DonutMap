@@ -17,7 +17,10 @@
 #' @param flow_arrow Should interactive flow trajectories include arrowheads?
 #' @param flow_arrow_size Arrowhead length in projected map units. If `NULL`,
 #'   a size is derived from the donut radii.
-#' @param flow_colour Flow line colour.
+#' @param flow_colour Flow line colour used when `flow_group` is not supplied.
+#' @param flow_legend Should a separate flow colour legend be shown when
+#'   `flow_group` is supplied?
+#' @param flow_legend_position Position of the flow colour legend.
 #' @param flow_opacity Flow line opacity.
 #' @param provider_tiles Leaflet provider tiles. Use `NULL` to skip tile layers.
 #' @param popup Should popups be attached to donut segments and flow lines?
@@ -63,6 +66,7 @@ donut_leaflet <- function(data,
                           from = NULL,
                           to = NULL,
                           flow_value = NULL,
+                          flow_group = NULL,
                           flow_min = NULL,
                           flow_weight_range = c(1, 8),
                           flow_curvature = 0.18,
@@ -70,6 +74,9 @@ donut_leaflet <- function(data,
                           flow_arrow = TRUE,
                           flow_arrow_size = NULL,
                           flow_colour = "grey35",
+                          flow_colours = NULL,
+                          flow_legend = TRUE,
+                          flow_legend_position = "topright",
                           flow_opacity = 0.55,
                           provider_tiles = "CartoDB.Positron",
                           popup = TRUE,
@@ -105,6 +112,19 @@ donut_leaflet <- function(data,
   if (!line_width_range_is_valid(flow_weight_range)) {
     stop(
       "`flow_weight_range` must be a non-negative numeric vector of length 2.",
+      call. = FALSE
+    )
+  }
+
+  if (!is.logical(flow_legend) || length(flow_legend) != 1L || is.na(flow_legend)) {
+    stop("`flow_legend` must be `TRUE` or `FALSE`.", call. = FALSE)
+  }
+
+  if (!is.character(flow_legend_position) ||
+      length(flow_legend_position) != 1L ||
+      !flow_legend_position %in% c("topleft", "topright", "bottomleft", "bottomright")) {
+    stop(
+      "`flow_legend_position` must be one of 'topleft', 'topright', 'bottomleft', or 'bottomright'.",
       call. = FALSE
     )
   }
@@ -155,6 +175,8 @@ donut_leaflet <- function(data,
 
   flow_sf <- NULL
   flow_arrow_sf <- NULL
+  flow_group_col <- NULL
+  flow_colour_values <- NULL
   if (!is.null(flows)) {
     from_col <- column_name(rlang::enquo(from), "from")
     to_col <- column_name(rlang::enquo(to), "to")
@@ -163,6 +185,15 @@ donut_leaflet <- function(data,
       "flow_value",
       required = FALSE
     )
+    flow_group_col <- column_name(
+      rlang::enquo(flow_group),
+      "flow_group",
+      required = FALSE
+    )
+
+    if (is.null(flow_group_col) && !is.null(flow_colours)) {
+      stop("`flow_colours` can only be used when `flow_group` is supplied.", call. = FALSE)
+    }
 
     flow_sf <- build_flow_lines(
       flows = flows,
@@ -170,6 +201,7 @@ donut_leaflet <- function(data,
       from_col = from_col,
       to_col = to_col,
       value_col = flow_value_col,
+      group_col = flow_group_col,
       id_col = id_col,
       lon_col = lon_col,
       lat_col = lat_col,
@@ -188,6 +220,17 @@ donut_leaflet <- function(data,
     }
 
     flow_sf$weight <- scale_to_range(flow_sf$value, flow_weight_range)
+    if (!is.null(flow_group_col) && nrow(flow_sf) > 0L) {
+      flow_colour_values <- resolve_flow_colours(
+        flow_groups = flow_sf$group,
+        flow_colours = flow_colours,
+        donut_colours = colour_values
+      )
+      flow_sf$colour <- unname(flow_colour_values[as.character(flow_sf$group)])
+    } else {
+      flow_sf$colour <- flow_colour
+    }
+
     flow_sf$popup <- paste0(
       "<strong>",
       htmltools::htmlEscape(flow_sf$from),
@@ -197,6 +240,17 @@ donut_leaflet <- function(data,
       "Flow: ",
       format_map_number(flow_sf$value)
     )
+
+    if (!is.null(flow_group_col)) {
+      flow_sf$popup <- paste0(
+        flow_sf$popup,
+        "<br/>",
+        htmltools::htmlEscape(flow_group_col),
+        ": ",
+        htmltools::htmlEscape(as.character(flow_sf$group))
+      )
+    }
+
     flow_sf$label <- paste0(
       htmltools::htmlEscape(flow_sf$from),
       " -> ",
@@ -204,6 +258,15 @@ donut_leaflet <- function(data,
       ": ",
       format_map_number(flow_sf$value)
     )
+
+    if (!is.null(flow_group_col)) {
+      flow_sf$label <- paste0(
+        flow_sf$label,
+        " (",
+        htmltools::htmlEscape(as.character(flow_sf$group)),
+        ")"
+      )
+    }
 
     if (isTRUE(flow_arrow) && nrow(flow_sf) > 0L) {
       flow_arrow_size <- check_flow_arrow_size(flow_arrow_size)
@@ -260,7 +323,7 @@ donut_leaflet <- function(data,
     leaflet_map <- leaflet::addPolylines(
       leaflet_map,
       data = flow_leaflet,
-      color = flow_colour,
+      color = ~colour,
       opacity = flow_opacity,
       weight = ~weight,
       popup = if (isTRUE(popup)) ~popup else NULL,
@@ -275,7 +338,7 @@ donut_leaflet <- function(data,
         data = flow_arrow_leaflet,
         stroke = FALSE,
         fill = TRUE,
-        fillColor = flow_colour,
+        fillColor = ~colour,
         fillOpacity = flow_opacity,
         popup = if (isTRUE(popup)) ~popup else NULL,
         label = if (isTRUE(label)) ~label else NULL,
@@ -320,6 +383,20 @@ donut_leaflet <- function(data,
     title = category_col,
     opacity = donut_opacity
   )
+
+  if (!is.null(flow_sf) &&
+      !is.null(flow_group_col) &&
+      nrow(flow_sf) > 0L &&
+      isTRUE(flow_legend)) {
+    leaflet_map <- leaflet::addLegend(
+      leaflet_map,
+      position = flow_legend_position,
+      colors = unname(flow_colour_values),
+      labels = names(flow_colour_values),
+      title = flow_group_col,
+      opacity = flow_opacity
+    )
+  }
 
   overlay_groups <- c(if (!is.null(map_projected)) "Map", if (!is.null(flow_sf)) "Flows", "Donuts")
 
