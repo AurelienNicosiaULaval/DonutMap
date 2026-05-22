@@ -1,0 +1,181 @@
+---
+title: "Donut maps with DonutMap"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Donut maps with DonutMap}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 5
+)
+```
+
+DonutMap creates donut charts positioned on a map from tidy data. The package
+has three main workflows:
+
+1. `donut_polygons()` creates an `sf` polygon layer.
+2. `donut_map()` creates a static `ggplot2` map.
+3. `donut_leaflet()` creates an interactive `leaflet` map with clickable
+   donut segments and optional flow lines.
+
+The examples below use a Natural Earth boundary loaded with `rnaturalearth`
+(Natural Earth, n.d., <https://www.naturalearthdata.com/>). The point-level
+category values and flows are simulated for demonstration.
+
+```{r setup}
+library(DonutMap)
+library(ggplot2)
+library(sf)
+
+set.seed(20260522)
+```
+
+## Example data
+
+The input data are tidy: each row gives a value for one category at one
+location. Locations can be supplied either as longitude and latitude columns or
+as an `sf` object.
+
+```{r data}
+sites <- data.frame(
+  site = c("Site A", "Site B", "Site C", "Site D", "Site E"),
+  lon = c(-73.57, -71.21, -72.75, -68.52, -66.82),
+  lat = c(45.50, 46.81, 45.40, 48.45, 50.22)
+)
+
+categories <- c("Walking", "Transit", "Car")
+
+demo <- merge(
+  sites,
+  data.frame(category = categories),
+  by = NULL
+)
+
+demo$value <- c(
+  32, 48, 120,
+  55, 80, 95,
+  28, 70, 110,
+  20, 44, 76,
+  18, 30, 58
+)
+
+demo$category <- factor(demo$category, levels = categories)
+
+flows <- data.frame(
+  from = c("Site A", "Site A", "Site B", "Site C", "Site D"),
+  to = c("Site B", "Site C", "Site D", "Site E", "Site E"),
+  trips = c(180, 90, 120, 70, 60)
+)
+
+category_colours <- c(
+  Walking = "#1b9e77",
+  Transit = "#7570b3",
+  Car = "#d95f02"
+)
+```
+
+For a background map, this vignette crops the Natural Earth Canada boundary to
+eastern Canada. The donut values and flow values remain simulated.
+
+```{r map-data}
+canada <- rnaturalearth::ne_countries(
+  country = "Canada",
+  returnclass = "sf"
+)
+
+eastern_canada <- sf::st_crop(
+  canada,
+  sf::st_bbox(
+    c(xmin = -81, ymin = 44, xmax = -62, ymax = 53.5),
+    crs = sf::st_crs(4326)
+  )
+)
+```
+
+## Static map
+
+`donut_map()` returns a normal `ggplot` object, so additional `ggplot2` layers,
+scales, labels, and themes can be added afterwards.
+
+```{r static-map}
+donut_map(
+  demo,
+  site,
+  category,
+  value,
+  lon = lon,
+  lat = lat,
+  map = eastern_canada,
+  crs = 3347,
+  radius_range = c(25000, 70000),
+  colours = category_colours,
+  flows = flows,
+  from = from,
+  to = to,
+  flow_value = trips,
+  flow_linewidth_range = c(0.3, 2.2)
+) +
+  labs(
+    title = "Simulated mobility composition by site",
+    fill = "Mode",
+    linewidth = "Trips"
+  ) +
+  theme(legend.position = "right")
+```
+
+## Interactive map
+
+`donut_leaflet()` returns a `leaflet` htmlwidget. Donut segments and flow lines
+can be clicked to open popups, and hover labels are enabled by default.
+
+```{r interactive-map}
+donut_leaflet(
+  demo,
+  site,
+  category,
+  value,
+  lon = lon,
+  lat = lat,
+  map = eastern_canada,
+  crs = 3347,
+  radius_range = c(25000, 70000),
+  colours = category_colours,
+  flows = flows,
+  from = from,
+  to = to,
+  flow_value = trips,
+  flow_weight_range = c(1, 7)
+)
+```
+
+## Using the geometry layer directly
+
+For more specialized workflows, `donut_polygons()` returns the donut segments as
+valid `sf` polygons.
+
+```{r sf-layer}
+donuts <- donut_polygons(
+  demo,
+  site,
+  category,
+  value,
+  lon = lon,
+  lat = lat,
+  crs = 3347,
+  radius_range = c(25000, 70000)
+)
+
+donuts
+```
+
+You can use that object with any package that accepts `sf` polygons.
+
+```{r sf-plot}
+plot(donuts["category"])
+```

@@ -1,0 +1,217 @@
+#' Draw a donut map
+#'
+#' `donut_map()` returns a `ggplot2` map with donut charts located on top of an
+#' optional `sf` background map. It can also add straight origin-destination
+#' flow lines.
+#'
+#' @param data A data frame or `sf` object. Each row is one category for one
+#'   donut location.
+#' @param id Unquoted column identifying each donut location.
+#' @param category Unquoted column identifying donut categories.
+#' @param value Unquoted numeric column giving non-negative category values.
+#' @param map Optional `sf` object used as a background layer.
+#' @param lon,lat Unquoted longitude and latitude columns. Required when `data`
+#'   is not an `sf` object.
+#' @param input_crs Coordinate reference system for `lon` and `lat`, or for an
+#'   `sf` object with missing CRS. Defaults to EPSG:4326.
+#' @param crs Target projected CRS used to build the map.
+#' @param radius_range Numeric vector of length 2 giving minimum and maximum
+#'   donut radii in map units. If `NULL`, a range is derived from the map extent.
+#' @param inner_radius Numeric value in `(0, 1)` giving the inner radius as a
+#'   proportion of the outer radius.
+#' @param n Number of points used to approximate a complete outer circle.
+#' @param colours Optional category colours. Use a named vector for stable
+#'   category-colour matching.
+#' @param flows Optional data frame of origin-destination flows.
+#' @param from,to Unquoted columns in `flows` identifying origin and destination
+#'   ids. Required when `flows` is supplied.
+#' @param flow_value Optional unquoted numeric column in `flows` used to scale
+#'   line widths. If omitted, each flow receives value 1.
+#' @param flow_min Optional minimum flow value to draw.
+#' @param flow_linewidth_range Numeric vector of length 2 controlling flow line
+#'   widths.
+#' @param flow_colour,flow_alpha Flow line colour and alpha.
+#' @param map_fill,map_colour Background map fill and outline colours.
+#' @param donut_colour,donut_linewidth Donut segment border colour and linewidth.
+#'
+#' @return A `ggplot` object.
+#' @export
+#'
+#' @examples
+#' demo <- data.frame(
+#'   place = rep(c("A", "B", "C"), each = 3),
+#'   lon = rep(c(-71.35, -71.2, -71.05), each = 3),
+#'   lat = rep(c(46.75, 46.82, 46.73), each = 3),
+#'   category = rep(c("x", "y", "z"), times = 3),
+#'   value = c(10, 20, 5, 5, 15, 10, 12, 4, 9)
+#' )
+#'
+#' flows <- data.frame(
+#'   from = c("A", "B"),
+#'   to = c("B", "C"),
+#'   trips = c(30, 10)
+#' )
+#'
+#' donut_map(
+#'   demo,
+#'   place,
+#'   category,
+#'   value,
+#'   lon = lon,
+#'   lat = lat,
+#'   flows = flows,
+#'   from = from,
+#'   to = to,
+#'   flow_value = trips
+#' )
+donut_map <- function(data,
+                      id,
+                      category,
+                      value,
+                      map = NULL,
+                      lon = NULL,
+                      lat = NULL,
+                      input_crs = 4326,
+                      crs = NULL,
+                      radius_range = NULL,
+                      inner_radius = 0.55,
+                      n = 96,
+                      colours = NULL,
+                      flows = NULL,
+                      from = NULL,
+                      to = NULL,
+                      flow_value = NULL,
+                      flow_min = NULL,
+                      flow_linewidth_range = c(0.2, 2.5),
+                      flow_colour = "grey35",
+                      flow_alpha = 0.45,
+                      map_fill = "grey96",
+                      map_colour = "white",
+                      donut_colour = "white",
+                      donut_linewidth = 0.15) {
+  id_col <- column_name(rlang::enquo(id), "id")
+  category_col <- column_name(rlang::enquo(category), "category")
+  value_col <- column_name(rlang::enquo(value), "value")
+  lon_col <- column_name(rlang::enquo(lon), "lon", required = FALSE)
+  lat_col <- column_name(rlang::enquo(lat), "lat", required = FALSE)
+
+  donuts <- build_donut_polygons(
+    data = data,
+    id_col = id_col,
+    category_col = category_col,
+    value_col = value_col,
+    lon_col = lon_col,
+    lat_col = lat_col,
+    input_crs = input_crs,
+    crs = crs,
+    map = map,
+    radius_range = radius_range,
+    inner_radius = inner_radius,
+    n = n
+  )
+
+  if (!is.null(colours)) {
+    categories <- levels(donuts$category)
+    colours <- resolve_colours(categories, colours)
+  }
+
+  map_projected <- NULL
+  if (!is.null(map)) {
+    if (!inherits(map, "sf")) {
+      stop("`map` must be an sf object.", call. = FALSE)
+    }
+
+    map_projected <- sf::st_transform(map, sf::st_crs(donuts))
+  }
+
+  flow_sf <- NULL
+  if (!is.null(flows)) {
+    from_col <- column_name(rlang::enquo(from), "from")
+    to_col <- column_name(rlang::enquo(to), "to")
+    flow_value_col <- column_name(
+      rlang::enquo(flow_value),
+      "flow_value",
+      required = FALSE
+    )
+
+    flow_sf <- build_flow_lines(
+      flows = flows,
+      locations = data,
+      from_col = from_col,
+      to_col = to_col,
+      value_col = flow_value_col,
+      id_col = id_col,
+      lon_col = lon_col,
+      lat_col = lat_col,
+      input_crs = input_crs,
+      crs = sf::st_crs(donuts)
+    )
+
+    if (!is.null(flow_min)) {
+      if (!is.numeric(flow_min) || length(flow_min) != 1L || !is.finite(flow_min)) {
+        stop("`flow_min` must be a single finite number.", call. = FALSE)
+      }
+
+      flow_sf <- dplyr::filter(flow_sf, .data$value >= flow_min)
+    }
+
+    if (!line_width_range_is_valid(flow_linewidth_range)) {
+      stop(
+        "`flow_linewidth_range` must be a non-negative numeric vector of length 2.",
+        call. = FALSE
+      )
+    }
+  }
+
+  p <- ggplot2::ggplot()
+
+  if (!is.null(map_projected)) {
+    p <- p +
+      ggplot2::geom_sf(
+        data = map_projected,
+        fill = map_fill,
+        colour = map_colour,
+        linewidth = 0.2
+      )
+  }
+
+  if (!is.null(flow_sf) && nrow(flow_sf) > 0L) {
+    p <- p +
+      ggplot2::geom_sf(
+        data = flow_sf,
+        ggplot2::aes(linewidth = .data$value),
+        colour = flow_colour,
+        alpha = flow_alpha,
+        lineend = "round"
+      ) +
+      ggplot2::scale_linewidth_continuous(
+        range = sort(flow_linewidth_range),
+        name = if (!is.null(flow_value_col)) flow_value_col else "flow"
+      )
+  }
+
+  p <- p +
+    ggplot2::geom_sf(
+      data = donuts,
+      ggplot2::aes(fill = .data$category),
+      colour = donut_colour,
+      linewidth = donut_linewidth
+    ) +
+    ggplot2::coord_sf(datum = NA) +
+    ggplot2::labs(fill = category_col)
+
+  if (!is.null(colours)) {
+    p <- p +
+      ggplot2::scale_fill_manual(values = colours, drop = FALSE)
+  }
+
+  p +
+    ggplot2::theme_minimal() +
+    ggplot2::theme(
+      panel.grid.major = ggplot2::element_line(
+        colour = "grey88",
+        linewidth = 0.2
+      ),
+      panel.grid.minor = ggplot2::element_blank()
+    )
+}
