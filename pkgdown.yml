@@ -3,7 +3,7 @@ pkgdown: 2.2.0
 pkgdown_sha: ~
 articles:
   donut-maps: donut-maps.html
-last_built: 2026-05-22T19:05Z
+last_built: 2026-05-22T20:02Z
 urls:
   reference: https://aureliennicosiaulaval.github.io/DonutMap/reference
   article: https://aureliennicosiaulaval.github.io/DonutMap/articles
