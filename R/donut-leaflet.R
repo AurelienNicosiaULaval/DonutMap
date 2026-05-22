@@ -11,6 +11,9 @@
 #'   straight lines, positive values for one bend direction, and negative values
 #'   for the opposite direction.
 #' @param flow_n Number of points used to approximate each curved trajectory.
+#' @param flow_arrow Should interactive flow trajectories include arrowheads?
+#' @param flow_arrow_size Arrowhead length in projected map units. If `NULL`,
+#'   a size is derived from the donut radii.
 #' @param flow_colour Flow line colour.
 #' @param flow_opacity Flow line opacity.
 #' @param provider_tiles Leaflet provider tiles. Use `NULL` to skip tile layers.
@@ -56,6 +59,8 @@ donut_leaflet <- function(data,
                           flow_weight_range = c(1, 8),
                           flow_curvature = 0.18,
                           flow_n = 30,
+                          flow_arrow = TRUE,
+                          flow_arrow_size = NULL,
                           flow_colour = "grey35",
                           flow_opacity = 0.55,
                           provider_tiles = "CartoDB.Positron",
@@ -126,6 +131,7 @@ donut_leaflet <- function(data,
   }
 
   flow_sf <- NULL
+  flow_arrow_sf <- NULL
   if (!is.null(flows)) {
     from_col <- column_name(rlang::enquo(from), "from")
     to_col <- column_name(rlang::enquo(to), "to")
@@ -175,6 +181,28 @@ donut_leaflet <- function(data,
       ": ",
       format_map_number(flow_sf$value)
     )
+
+    if (isTRUE(flow_arrow) && nrow(flow_sf) > 0L) {
+      flow_arrow_size <- check_flow_arrow_size(flow_arrow_size)
+
+      if (is.null(flow_arrow_size)) {
+        flow_arrow_size <- default_flow_arrow_size(donuts)
+      }
+
+      donut_radius_tbl <- sf::st_drop_geometry(donuts) |>
+        dplyr::group_by(.data$id) |>
+        dplyr::summarise(radius = max(.data$radius), .groups = "drop")
+
+      destination_radius <- donut_radius_tbl$radius[
+        match(flow_sf$to, donut_radius_tbl$id)
+      ]
+
+      flow_arrow_sf <- build_flow_arrowheads(
+        flow_sf = flow_sf,
+        arrow_size = flow_arrow_size,
+        tip_offset = destination_radius * 1.25
+      )
+    }
   }
 
   donuts_leaflet <- sf::st_transform(donuts, 4326)
@@ -214,6 +242,21 @@ donut_leaflet <- function(data,
       label = if (isTRUE(label)) ~label else NULL,
       group = "Flows"
     )
+
+    if (!is.null(flow_arrow_sf) && nrow(flow_arrow_sf) > 0L) {
+      flow_arrow_leaflet <- sf::st_transform(flow_arrow_sf, 4326)
+      leaflet_map <- leaflet::addPolygons(
+        leaflet_map,
+        data = flow_arrow_leaflet,
+        stroke = FALSE,
+        fill = TRUE,
+        fillColor = flow_colour,
+        fillOpacity = flow_opacity,
+        popup = if (isTRUE(popup)) ~popup else NULL,
+        label = if (isTRUE(label)) ~label else NULL,
+        group = "Flows"
+      )
+    }
   }
 
   leaflet_map <- leaflet::addPolygons(

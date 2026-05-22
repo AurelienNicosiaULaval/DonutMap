@@ -27,7 +27,8 @@ devtools::install()
 and arrows.
 
 `donut_leaflet()` creates an interactive `leaflet` map with clickable donut
-segments, popups, hover labels, legends, and optional curved trajectories.
+segments, popups, hover labels, legends, and optional curved trajectories with
+directional arrowheads.
 
 `donut_polygons()` computes an `sf` polygon layer with one donut segment per
 non-zero location-category pair.
@@ -97,13 +98,16 @@ donut_leaflet(
   to = to,
   flow_value = trips,
   flow_curvature = 0.22,
+  flow_arrow = TRUE,
   colours = mode_colours
 )
 ```
 
 Use `flow_curvature = 0` for straight links, positive values for one bend
-direction, and negative values for the opposite direction. In `donut_map()`,
-`flow_arrow = TRUE` adds directional arrows to the static trajectories.
+direction, and negative values for the opposite direction. `flow_arrow = TRUE`
+adds directional arrows to the static and interactive trajectories. In
+`donut_leaflet()`, use `flow_arrow_size` to tune the arrowhead length in
+projected map units when the automatic size is not ideal.
 
 ## Examples and documentation
 
@@ -111,7 +115,7 @@ The pkgdown site includes a complete vignette with:
 
 - simulated Québec/eastern Canada example data;
 - a static `ggplot2` donut map with directional trajectories;
-- an interactive `leaflet` donut map with clickable trajectories;
+- an interactive `leaflet` donut map with clickable directional trajectories;
 - direct use of the `sf` geometry layer.
 
 See `vignette("donut-maps", package = "DonutMap")` locally, or the online

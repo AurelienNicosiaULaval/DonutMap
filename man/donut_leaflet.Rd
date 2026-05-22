@@ -26,6 +26,8 @@ donut_leaflet(
   flow_weight_range = c(1, 8),
   flow_curvature = 0.18,
   flow_n = 30,
+  flow_arrow = TRUE,
+  flow_arrow_size = NULL,
   flow_colour = "grey35",
   flow_opacity = 0.55,
   provider_tiles = "CartoDB.Positron",
@@ -89,6 +91,11 @@ straight lines, positive values for one bend direction, and negative values
 for the opposite direction.}
 
 \item{flow_n}{Number of points used to approximate each curved trajectory.}
+
+\item{flow_arrow}{Should interactive flow trajectories include arrowheads?}
+
+\item{flow_arrow_size}{Arrowhead length in projected map units. If \code{NULL},
+a size is derived from the donut radii.}
 
 \item{flow_colour}{Flow line colour.}
 

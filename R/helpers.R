@@ -302,6 +302,41 @@ check_flow_n <- function(flow_n) {
   as.integer(flow_n)
 }
 
+check_flow_arrow_size <- function(flow_arrow_size) {
+  if (is.null(flow_arrow_size)) {
+    return(NULL)
+  }
+
+  if (!is.numeric(flow_arrow_size) ||
+      length(flow_arrow_size) != 1L ||
+      !is.finite(flow_arrow_size) ||
+      flow_arrow_size <= 0) {
+    stop("`flow_arrow_size` must be `NULL` or a single positive number.", call. = FALSE)
+  }
+
+  as.numeric(flow_arrow_size)
+}
+
+default_flow_arrow_size <- function(donuts) {
+  radii <- unique(donuts$radius)
+  radii <- radii[is.finite(radii) & radii > 0]
+
+  if (length(radii) > 0L) {
+    return(stats::median(radii) * 0.45)
+  }
+
+  bbox <- sf::st_bbox(donuts)
+  width <- as.numeric(bbox[["xmax"]] - bbox[["xmin"]])
+  height <- as.numeric(bbox[["ymax"]] - bbox[["ymin"]])
+  span <- min(width, height)
+
+  if (is.finite(span) && span > 0) {
+    return(span * 0.015)
+  }
+
+  100
+}
+
 make_flow_linestring <- function(x_from,
                                  y_from,
                                  x_to,
@@ -342,6 +377,93 @@ make_flow_linestring <- function(x_from,
   )
 
   sf::st_linestring(coords)
+}
+
+line_path_length <- function(coords) {
+  if (nrow(coords) < 2L) {
+    return(0)
+  }
+
+  coord_diff <- coords[-1L, , drop = FALSE] - coords[-nrow(coords), , drop = FALSE]
+  sum(sqrt(rowSums(coord_diff^2)))
+}
+
+build_flow_arrowheads <- function(flow_sf,
+                                  arrow_size,
+                                  tip_offset = NULL,
+                                  width_ratio = 0.7) {
+  if (is.null(tip_offset)) {
+    tip_offset <- rep(0, nrow(flow_sf))
+  }
+
+  if (length(tip_offset) != nrow(flow_sf)) {
+    stop("`tip_offset` must have one value per flow.", call. = FALSE)
+  }
+
+  polygons <- vector("list", nrow(flow_sf))
+  keep <- rep(FALSE, nrow(flow_sf))
+
+  for (i in seq_len(nrow(flow_sf))) {
+    coords <- sf::st_coordinates(sf::st_geometry(flow_sf)[[i]])
+    coords <- coords[, c("X", "Y"), drop = FALSE]
+
+    if (nrow(coords) < 2L) {
+      next
+    }
+
+    line_length <- line_path_length(coords)
+    if (!is.finite(line_length) || line_length <= 0) {
+      next
+    }
+
+    end <- coords[nrow(coords), ]
+    previous <- NULL
+
+    for (j in seq.int(nrow(coords) - 1L, 1L)) {
+      candidate <- coords[j, ]
+      direction <- end - candidate
+      segment_length <- sqrt(sum(direction^2))
+
+      if (is.finite(segment_length) && segment_length > sqrt(.Machine$double.eps)) {
+        previous <- candidate
+        break
+      }
+    }
+
+    if (is.null(previous)) {
+      next
+    }
+
+    direction <- end - previous
+    direction <- direction / sqrt(sum(direction^2))
+    offset <- tip_offset[[i]]
+
+    if (!is.finite(offset) || offset < 0) {
+      offset <- 0
+    }
+
+    offset <- min(offset, line_length * 0.45)
+    local_arrow_size <- min(arrow_size, line_length * 0.25)
+
+    if (!is.finite(local_arrow_size) || local_arrow_size <= 0) {
+      next
+    }
+
+    tip <- end - direction * offset
+    base <- tip - direction * local_arrow_size
+    perpendicular <- c(-direction[[2L]], direction[[1L]])
+    half_width <- local_arrow_size * width_ratio / 2
+    left <- base + perpendicular * half_width
+    right <- base - perpendicular * half_width
+
+    polygons[[i]] <- sf::st_polygon(list(rbind(tip, left, right, tip)))
+    keep[[i]] <- TRUE
+  }
+
+  sf::st_sf(
+    sf::st_drop_geometry(flow_sf)[keep, , drop = FALSE],
+    geometry = sf::st_sfc(polygons[keep], crs = sf::st_crs(flow_sf))
+  )
 }
 
 resolve_colours <- function(categories, colours = NULL) {

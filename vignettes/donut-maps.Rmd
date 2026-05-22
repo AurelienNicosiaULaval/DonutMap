@@ -137,7 +137,8 @@ donut_map(
 ## Interactive map
 
 `donut_leaflet()` returns a `leaflet` htmlwidget. Donut segments and trajectory
-lines can be clicked to open popups, and hover labels are enabled by default.
+lines, including arrowheads, can be clicked to open popups, and hover labels
+are enabled by default.
 
 ```{r interactive-map}
 donut_leaflet(
@@ -156,7 +157,11 @@ donut_leaflet(
   to = to,
   flow_value = trips,
   flow_weight_range = c(1, 7),
-  flow_curvature = 0.22
+  flow_curvature = 0.22,
+  flow_arrow = TRUE,
+  flow_arrow_size = 45000,
+  flow_colour = "#1f2937",
+  flow_opacity = 0.75
 )
 ```
 

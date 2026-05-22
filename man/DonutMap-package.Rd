@@ -9,8 +9,8 @@
 DonutMap creates donut charts positioned on a map from tidy data. The main
 static entry point is \code{\link[=donut_map]{donut_map()}}. The main interactive entry point is
 \code{\link[=donut_leaflet]{donut_leaflet()}}. Use \code{\link[=donut_polygons]{donut_polygons()}} when you need the \code{sf} polygon
-layer directly, and \code{\link[=flow_lines]{flow_lines()}} when you need origin-destination line
-geometries.
+layer directly, and \code{\link[=flow_lines]{flow_lines()}} when you need origin-destination line or
+trajectory geometries.
 }
 \seealso{
 Useful links:
