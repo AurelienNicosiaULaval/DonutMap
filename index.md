@@ -21,6 +21,12 @@ The package is inspired by
 starts from a simpler tidy-data interface and avoids the older
 `odf`/`tmap` workflow.
 
+## Online examples
+
+The pkgdown site includes a [getting-started
+article](https://aureliennicosiaulaval.github.io/DonutMap/articles/donut-maps.html)
+and a dedicated example gallery available from the Examples menu.
+
 ## Installation
 
 ``` r
