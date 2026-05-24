@@ -2,6 +2,15 @@
 
 ![DonutMap hex logo](reference/figures/logo.svg)
 
+[![R-CMD-check](https://github.com/AurelienNicosiaULaval/DonutMap/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/AurelienNicosiaULaval/DonutMap/actions/workflows/R-CMD-check.yaml)
+[![pkgdown](https://github.com/AurelienNicosiaULaval/DonutMap/actions/workflows/pkgdown.yaml/badge.svg)](https://github.com/AurelienNicosiaULaval/DonutMap/actions/workflows/pkgdown.yaml)
+[![pkgdown
+site](https://img.shields.io/badge/pkgdown-site-2ea44f.svg)](https://aureliennicosiaulaval.github.io/DonutMap/)
+[![R \>=
+4.1.0](https://img.shields.io/badge/R-%3E%3D%204.1.0-blue.svg)](https://aureliennicosiaulaval.github.io/DonutMap/DESCRIPTION)
+[![License:
+MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](https://aureliennicosiaulaval.github.io/DonutMap/LICENSE)
+
 DonutMap is an R package for drawing donut charts on static and
 interactive maps with `sf`, `ggplot2`, and `leaflet`.
 
