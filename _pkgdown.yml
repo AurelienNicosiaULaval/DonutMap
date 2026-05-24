@@ -19,6 +19,8 @@ navbar:
       menu:
       - text: Donut maps with DonutMap
         href: articles/donut-maps.html
+      - text: Example gallery
+        href: articles/example-gallery.html
 
 home:
   title: DonutMap
