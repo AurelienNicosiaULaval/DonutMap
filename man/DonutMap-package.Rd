@@ -22,7 +22,7 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Aurélien Nicosia \email{116816597+AurelienNicosiaULaval@users.noreply.github.com}
+\strong{Maintainer}: Aurélien Nicosia \email{aurelien.nicosia@mat.ulaval.ca}
 
 }
 \keyword{internal}

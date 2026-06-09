@@ -16,3 +16,6 @@
 ^doc/
 ^Meta$
 ^Meta/
+^[^/]*[.]Rcheck$
+^[^/]*[.]tar[.]gz$
+^CRAN-SUBMISSION$
