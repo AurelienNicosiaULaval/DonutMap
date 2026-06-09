@@ -3,6 +3,8 @@
 ![DonutMap hex logo](reference/figures/logo.svg)
 
 [![R-CMD-check](https://github.com/AurelienNicosiaULaval/DonutMap/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/AurelienNicosiaULaval/DonutMap/actions/workflows/R-CMD-check.yaml)
+[![CRAN
+status](https://www.r-pkg.org/badges/version/DonutMap)](https://CRAN.R-project.org/package=DonutMap)
 [![pkgdown](https://github.com/AurelienNicosiaULaval/DonutMap/actions/workflows/pkgdown.yaml/badge.svg)](https://github.com/AurelienNicosiaULaval/DonutMap/actions/workflows/pkgdown.yaml)
 [![pkgdown
 site](https://img.shields.io/badge/pkgdown-site-2ea44f.svg)](https://aureliennicosiaulaval.github.io/DonutMap/)
@@ -31,11 +33,11 @@ and a dedicated example gallery available from the Examples menu.
 
 ``` r
 
-# From GitHub
-devtools::install_github("AurelienNicosiaULaval/DonutMap")
+# From CRAN
+install.packages("DonutMap")
 
-# From this local repository
-devtools::install()
+# Development version from GitHub
+pak::pak("AurelienNicosiaULaval/DonutMap")
 ```
 
 ## Main functions
