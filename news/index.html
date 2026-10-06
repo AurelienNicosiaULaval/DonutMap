@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">DonutMap</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -36,6 +36,15 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.2.0" id="donutmap-020">DonutMap 0.2.0<a class="anchor" aria-label="anchor" href="#donutmap-020"></a></h2>
+<ul><li>Interactive vector layers retain fractional screen coordinates by default, reducing stair-step artifacts in curves, arrowheads and donut borders.</li>
+<li>Interactive curves now use 96 points by default and preserve their vertices.</li>
+<li>Automatic arrowheads keep a 14-pixel length across zoom levels and adapt their width to the trajectory weight. Use <code>flow_arrow_pixels</code> to adjust this length, or <code>flow_arrow_size</code> to retain lengths in projected map units.</li>
+<li>Arrowheads follow the actual curved trajectory, and the line ends at the head base instead of extending beyond the point towards the donut center.</li>
+<li>Added <code>smooth_rendering = FALSE</code> to request Leaflet’s standard projection.</li>
+<li>Maps without a tile provider no longer show a spurious <code>null</code> base layer.</li>
+</ul></div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.0" id="donutmap-010">DonutMap 0.1.0<a class="anchor" aria-label="anchor" href="#donutmap-010"></a></h2><p class="text-muted">CRAN release: 2026-06-08</p>
 <ul><li>Initial CRAN submission.</li>
 <li>Added static donut maps with <code>ggplot2</code>.</li>
@@ -43,7 +52,8 @@
 <li>Added <code>sf</code> donut polygon generation.</li>
 <li>Added straight and curved origin-destination flow geometries.</li>
 </ul></div>
-  </main></div>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+    </nav></aside></div>
 
 
     <footer><div class="pkgdown-footer-left">
@@ -51,7 +61,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>

@@ -25,3 +25,7 @@ Useful links:
 ## Author
 
 **Maintainer**: Aurélien Nicosia <aurelien.nicosia@mat.ulaval.ca>
+
+Authors:
+
+- Aurélien Nicosia <aurelien.nicosia@mat.ulaval.ca>

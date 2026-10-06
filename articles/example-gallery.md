@@ -214,7 +214,7 @@ donut_leaflet(
   flow_weight_range = c(1, 7),
   flow_curvature = 0.25,
   flow_arrow = TRUE,
-  flow_arrow_size = 35000,
+  flow_arrow_pixels = 14,
   flow_opacity = 0.8
 )
 ```
