@@ -423,10 +423,18 @@ line_path_length <- function(coords) {
   sum(sqrt(rowSums(coord_diff^2)))
 }
 
-build_flow_arrowheads <- function(flow_sf,
-                                  arrow_size,
-                                  tip_offset = NULL,
-                                  width_ratio = 0.7) {
+flow_path_position <- function(coords, distances, distance) {
+  segment <- findInterval(distance, distances, rightmost.closed = TRUE)
+  segment <- max(1L, min(segment, nrow(coords) - 1L))
+  fraction <- (distance - distances[[segment]]) /
+    (distances[[segment + 1L]] - distances[[segment]])
+  coords[segment, ] + fraction * (coords[segment + 1L, ] - coords[segment, ])
+}
+
+build_flow_arrows <- function(flow_sf,
+                             arrow_size,
+                             tip_offset = NULL,
+                             width_ratio = 0.7) {
   if (is.null(tip_offset)) {
     tip_offset <- rep(0, nrow(flow_sf))
   }
@@ -436,6 +444,7 @@ build_flow_arrowheads <- function(flow_sf,
   }
 
   polygons <- vector("list", nrow(flow_sf))
+  lines <- sf::st_geometry(flow_sf)
   keep <- rep(FALSE, nrow(flow_sf))
 
   for (i in seq_len(nrow(flow_sf))) {
@@ -446,34 +455,23 @@ build_flow_arrowheads <- function(flow_sf,
       next
     }
 
-    line_length <- line_path_length(coords)
+    # Remove consecutive duplicate vertices before interpolating along the path.
+    segment_lengths <- sqrt(rowSums(
+      (coords[-1L, , drop = FALSE] - coords[-nrow(coords), , drop = FALSE])^2
+    ))
+    coords <- coords[c(TRUE, segment_lengths > sqrt(.Machine$double.eps)), , drop = FALSE]
+    if (nrow(coords) < 2L) {
+      next
+    }
+    segment_lengths <- sqrt(rowSums(
+      (coords[-1L, , drop = FALSE] - coords[-nrow(coords), , drop = FALSE])^2
+    ))
+    distances <- c(0, cumsum(segment_lengths))
+    line_length <- distances[[length(distances)]]
     if (!is.finite(line_length) || line_length <= 0) {
       next
     }
 
-    end <- coords[nrow(coords), ]
-    previous <- NULL
-
-    for (j in seq.int(nrow(coords) - 1L, 1L)) {
-      candidate <- coords[j, ]
-      direction <- end - candidate
-      segment_length <- sqrt(sum(direction^2))
-
-      valid_segment <- is.finite(segment_length) &&
-        segment_length > sqrt(.Machine$double.eps)
-
-      if (valid_segment) {
-        previous <- candidate
-        break
-      }
-    }
-
-    if (is.null(previous)) {
-      next
-    }
-
-    direction <- end - previous
-    direction <- direction / sqrt(sum(direction^2))
     offset <- tip_offset[[i]]
 
     if (!is.finite(offset) || offset < 0) {
@@ -487,21 +485,34 @@ build_flow_arrowheads <- function(flow_sf,
       next
     }
 
-    tip <- end - direction * offset
-    base <- tip - direction * local_arrow_size
+    # Both the tip and the stem endpoint lie on the curved trajectory.
+    tip_distance <- line_length - offset
+    base_distance <- tip_distance - local_arrow_size
+    tip <- flow_path_position(coords, distances, tip_distance)
+    base <- flow_path_position(coords, distances, base_distance)
+    direction <- tip - base
+    chord <- sqrt(sum(direction^2))
+    if (!is.finite(chord) || chord <= sqrt(.Machine$double.eps)) {
+      next
+    }
+    direction <- direction / chord
     perpendicular <- c(-direction[[2L]], direction[[1L]])
     half_width <- local_arrow_size * width_ratio / 2
     left <- base + perpendicular * half_width
     right <- base - perpendicular * half_width
 
     polygons[[i]] <- sf::st_polygon(list(rbind(tip, left, right, tip)))
+    stem <- rbind(coords[distances < base_distance, , drop = FALSE], base)
+    lines[[i]] <- sf::st_linestring(stem)
     keep[[i]] <- TRUE
   }
 
-  sf::st_sf(
+  arrowheads <- sf::st_sf(
     sf::st_drop_geometry(flow_sf)[keep, , drop = FALSE],
     geometry = sf::st_sfc(polygons[keep], crs = sf::st_crs(flow_sf))
   )
+  sf::st_geometry(flow_sf) <- lines
+  list(lines = flow_sf, arrowheads = arrowheads)
 }
 
 resolve_colours <- function(categories, colours = NULL) {

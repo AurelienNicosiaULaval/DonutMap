@@ -156,8 +156,11 @@ are enabled by default. When `flow_group` is supplied, both the trajectory lines
 and their arrowheads are coloured by group. By default, interactive donuts are
 constructed in EPSG:3857, the display projection used by Leaflet, which keeps
 the sector boundaries visually regular on screen. Leaflet simplification is
-also disabled for donut polygons so the sector borders are not simplified after
-the widget is rendered.
+also disabled for donut polygons and flow trajectories. Vector coordinates
+retain fractional pixels to reduce stair-step artifacts. Automatic arrowheads
+keep a 14-pixel length when zooming and their width adapts to the line weight;
+very short trajectories use smaller heads. Use `flow_arrow_pixels` to change
+this length, or `flow_arrow_size` to specify a length in projected map units.
 
 ```{r interactive-map}
 donut_leaflet(
@@ -180,7 +183,7 @@ donut_leaflet(
   flow_weight_range = c(1, 7),
   flow_curvature = 0.22,
   flow_arrow = TRUE,
-  flow_arrow_size = 45000,
+  flow_arrow_pixels = 14,
   flow_opacity = 0.75
 )
 ```

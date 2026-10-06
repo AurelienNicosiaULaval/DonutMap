@@ -126,8 +126,13 @@ donut_leaflet(
 Use `flow_curvature = 0` for straight links, positive values for one bend
 direction, and negative values for the opposite direction. `flow_arrow = TRUE`
 adds directional arrows to the static and interactive trajectories. In
-`donut_leaflet()`, use `flow_arrow_size` to tune the arrowhead length in
-projected map units when the automatic size is not ideal. Use `flow_group` and
+`donut_leaflet()`, automatic arrowheads use a 14-pixel length that stays
+readable when zooming. Use `flow_arrow_pixels` to adjust it, or supply
+`flow_arrow_size` for a length in projected map units. Very short trajectories
+use smaller heads. Interactive vector layers retain fractional screen
+coordinates and flow curves preserve their vertices for smoother rendering.
+Use `smooth_rendering = FALSE` to request Leaflet's standard projection.
+Use `flow_group` and
 `flow_colours` when the connections themselves should carry a categorical
 colour, for example destination municipality or flow type.
 

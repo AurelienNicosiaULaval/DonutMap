@@ -4,5 +4,7 @@ export(donut_leaflet)
 export(donut_map)
 export(donut_polygons)
 export(flow_lines)
-importFrom(rlang,.data)
-importFrom(rlang,.env)
+importFrom(rlang,
+  .data,
+  .env
+)

@@ -26,7 +26,7 @@ donut_leaflet(
   flow_min = NULL,
   flow_weight_range = c(1, 8),
   flow_curvature = 0.18,
-  flow_n = 30,
+  flow_n = 96,
   flow_arrow = TRUE,
   flow_arrow_size = NULL,
   flow_colour = "grey35",
@@ -45,7 +45,9 @@ donut_leaflet(
   donut_colour = "#ffffff",
   donut_weight = 1,
   donut_opacity = 0.9,
-  donut_smooth_factor = 0
+  donut_smooth_factor = 0,
+  flow_arrow_pixels = 14,
+  smooth_rendering = TRUE
 )
 }
 \arguments{
@@ -103,12 +105,13 @@ flow line weights.}
 straight lines, positive values for one bend direction, and negative values
 for the opposite direction.}
 
-\item{flow_n}{Number of points used to approximate each curved trajectory.}
+\item{flow_n}{Number of points used to approximate each curved trajectory.
+Defaults to \code{96} for smooth interactive curves.}
 
 \item{flow_arrow}{Should interactive flow trajectories include arrowheads?}
 
 \item{flow_arrow_size}{Arrowhead length in projected map units. If \code{NULL},
-a size is derived from the donut radii.}
+\code{flow_arrow_pixels} controls the arrowhead length on screen.}
 
 \item{flow_colour}{Flow line colour used when \code{flow_group} is not supplied.}
 
@@ -148,6 +151,15 @@ rendering? The default \code{FALSE} gives crisper small donut separators.}
 \item{donut_smooth_factor}{Leaflet path simplification factor for donut
 polygons. The default \code{0} preserves the donut vertices so arcs and sector
 separators are not simplified by Leaflet.}
+
+\item{flow_arrow_pixels}{Automatic arrowhead length in screen pixels, used
+when \code{flow_arrow_size = NULL}. Defaults to \code{14} and remains constant when
+zooming. Heads are shortened for very short trajectories and their width
+adapts to the flow line weight.}
+
+\item{smooth_rendering}{Should vector layers use fractional screen
+coordinates? The default \code{TRUE} avoids rounding curves, arrowheads and
+donuts to whole pixels. Use \code{FALSE} for Leaflet's standard projection.}
 }
 \value{
 A \code{leaflet} htmlwidget.

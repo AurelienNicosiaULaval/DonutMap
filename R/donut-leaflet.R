@@ -15,9 +15,17 @@
 #'   straight lines, positive values for one bend direction, and negative values
 #'   for the opposite direction.
 #' @param flow_n Number of points used to approximate each curved trajectory.
+#'   Defaults to `96` for smooth interactive curves.
 #' @param flow_arrow Should interactive flow trajectories include arrowheads?
 #' @param flow_arrow_size Arrowhead length in projected map units. If `NULL`,
-#'   a size is derived from the donut radii.
+#'   `flow_arrow_pixels` controls the arrowhead length on screen.
+#' @param flow_arrow_pixels Automatic arrowhead length in screen pixels, used
+#'   when `flow_arrow_size = NULL`. Defaults to `14` and remains constant when
+#'   zooming. Heads are shortened for very short trajectories and their width
+#'   adapts to the flow line weight.
+#' @param smooth_rendering Should vector layers use fractional screen
+#'   coordinates? The default `TRUE` avoids rounding curves, arrowheads and
+#'   donuts to whole pixels. Use `FALSE` for Leaflet's standard projection.
 #' @param flow_colour Flow line colour used when `flow_group` is not supplied.
 #' @param flow_legend Should a separate flow colour legend be shown when
 #'   `flow_group` is supplied?
@@ -72,7 +80,7 @@ donut_leaflet <- function(data,
                           flow_min = NULL,
                           flow_weight_range = c(1, 8),
                           flow_curvature = 0.18,
-                          flow_n = 30,
+                          flow_n = 96,
                           flow_arrow = TRUE,
                           flow_arrow_size = NULL,
                           flow_colour = "grey35",
@@ -91,7 +99,9 @@ donut_leaflet <- function(data,
                           donut_colour = "#ffffff",
                           donut_weight = 1,
                           donut_opacity = 0.9,
-                          donut_smooth_factor = 0) {
+                          donut_smooth_factor = 0,
+                          flow_arrow_pixels = 14,
+                          smooth_rendering = TRUE) {
   id_col <- column_name(rlang::enquo(id), "id")
   category_col <- column_name(rlang::enquo(category), "category")
   value_col <- column_name(rlang::enquo(value), "value")
@@ -99,10 +109,16 @@ donut_leaflet <- function(data,
   lat_col <- column_name(rlang::enquo(lat), "lat", required = FALSE)
 
   check_bool(prefer_canvas, "prefer_canvas")
+  check_bool(smooth_rendering, "smooth_rendering")
   check_bool(flow_arrow, "flow_arrow")
   check_bool(flow_legend, "flow_legend")
   check_bool(popup, "popup")
   check_bool(label, "label")
+
+  if (!is.numeric(flow_arrow_pixels) || length(flow_arrow_pixels) != 1L ||
+      !is.finite(flow_arrow_pixels) || flow_arrow_pixels <= 0) {
+    stop("`flow_arrow_pixels` must be a single positive number.", call. = FALSE)
+  }
 
   invalid_donut_smooth_factor <- !is.numeric(donut_smooth_factor) ||
     length(donut_smooth_factor) != 1L ||
@@ -187,6 +203,7 @@ donut_leaflet <- function(data,
 
   flow_sf <- NULL
   flow_arrow_sf <- NULL
+  automatic_arrows <- FALSE
   flow_group_col <- NULL
   flow_colour_values <- NULL
   if (!is.null(flows)) {
@@ -289,6 +306,7 @@ donut_leaflet <- function(data,
 
     if (isTRUE(flow_arrow) && nrow(flow_sf) > 0L) {
       flow_arrow_size <- check_flow_arrow_size(flow_arrow_size)
+      automatic_arrows <- is.null(flow_arrow_size)
 
       if (is.null(flow_arrow_size)) {
         flow_arrow_size <- default_flow_arrow_size(donuts)
@@ -302,17 +320,22 @@ donut_leaflet <- function(data,
         match(flow_sf$to, donut_radius_tbl$id)
       ]
 
-      flow_arrow_sf <- build_flow_arrowheads(
+      flow_sf$render_id <- seq_len(nrow(flow_sf))
+      flow_visuals <- build_flow_arrows(
         flow_sf = flow_sf,
         arrow_size = flow_arrow_size,
         tip_offset = destination_radius * 1.25
       )
+      flow_arrow_sf <- flow_visuals$arrowheads
+      if (!automatic_arrows) {
+        flow_sf <- flow_visuals$lines
+      }
     }
   }
 
   donuts_leaflet <- sf::st_transform(donuts, 4326)
   leaflet_map <- leaflet::leaflet(
-    options = leaflet::leafletOptions(preferCanvas = prefer_canvas)
+    options = donut_leaflet_options(prefer_canvas, smooth_rendering)
   )
 
   if (!is.null(provider_tiles)) {
@@ -345,6 +368,14 @@ donut_leaflet <- function(data,
       color = ~colour,
       opacity = flow_opacity,
       weight = ~weight,
+      smoothFactor = if (isTRUE(smooth_rendering)) 0 else 1,
+      options = leaflet::pathOptions(
+        lineCap = if (isTRUE(flow_arrow)) "butt" else "round",
+        lineJoin = "round",
+        className = if ("render_id" %in% names(flow_sf)) {
+          paste0("donutmap-flow-", flow_sf$render_id)
+        } else "donutmap-flow"
+      ),
       popup = if (isTRUE(popup)) ~popup else NULL,
       label = if (isTRUE(label)) ~label else NULL,
       group = "Flows"
@@ -359,6 +390,10 @@ donut_leaflet <- function(data,
         fill = TRUE,
         fillColor = ~colour,
         fillOpacity = flow_opacity,
+        smoothFactor = 0,
+        options = leaflet::pathOptions(
+          className = paste0("donutmap-arrow-", flow_arrow_sf$render_id)
+        ),
         popup = if (isTRUE(popup)) ~popup else NULL,
         label = if (isTRUE(label)) ~label else NULL,
         group = "Flows"
@@ -425,11 +460,20 @@ donut_leaflet <- function(data,
     "Donuts"
   )
 
-  leaflet::addLayersControl(
+  leaflet_map <- leaflet::addLayersControl(
     leaflet_map,
-    baseGroups = if (!is.null(provider_tiles)) "Tiles" else NULL,
+    baseGroups = if (!is.null(provider_tiles)) "Tiles" else character(),
     overlayGroups = overlay_groups,
     options = leaflet::layersControlOptions(collapsed = TRUE)
   ) |>
     leaflet::addScaleBar(position = "bottomleft")
+
+  if (!is.null(flow_arrow_sf) && nrow(flow_arrow_sf) > 0L && automatic_arrows) {
+    leaflet_map <- htmlwidgets::onRender(
+      leaflet_map,
+      leaflet_rendering_script("flow-arrows.js"),
+      data = list(size = flow_arrow_pixels)
+    )
+  }
+  leaflet_map
 }
